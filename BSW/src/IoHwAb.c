@@ -82,10 +82,10 @@ float MovAvg_Update(MovAvg_HandleType *f, float new_sample)
 float IoHwAb_Analog_ConvertToAmps(uint16_t raw)
 {
     /* Step 1: Translate digital 10-bit count into voltage representation (0V - 5V) */
-    float voltage = ((float)raw / ADC_RESOLUTION_MAX) * ADC_REF_VOLTAGE;
+    float voltage = ((float)raw / ADC_MAX_RESOLUTION) * ADC_VREF_VOLTS;
     
     /* Step 2: Subtract quiescent zero-current output voltage (2.5V) and scale by sensor sensitivity */
-    return (voltage - ACS712_ZERO_OFFSET) / ACS712_SENSITIVITY;
+    return (voltage - ACS712_ZERO_OFFSET_V) / ACS712_SENSITIVITY;
 }
 
 /*
@@ -97,10 +97,10 @@ float IoHwAb_Analog_ConvertToAmps(uint16_t raw)
 float IoHwAb_Analog_ReadVoltage(uint16_t raw)
 {
     /* Step 1: Calculate measured voltage across the MCU pin (0V - 5V range) */
-    float adc_pin_voltage = ((float)raw / ADC_RESOLUTION_MAX) * ADC_REF_VOLTAGE;
+    float adc_pin_voltage = ((float)raw / ADC_MAX_RESOLUTION) * ADC_VREF_VOLTS;
     
     /* Step 2: Apply the external voltage divider scaling multiplier */
-    return adc_pin_voltage * VDIV_SCALING_FACTOR;
+    return adc_pin_voltage * VOLTAGE_DIVIDER_RATIO;
 }
 
 /*

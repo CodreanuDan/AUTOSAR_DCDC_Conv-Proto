@@ -25,6 +25,9 @@ extern "C" {
  *            START OF VARIABLE DECLARATIONS
  *******************************************************/
 
+#define ADC_NUM_CH  4U
+
+
 /* Array of ADC Channels raw values */
 extern uint16_t g_adc_raw[ADC_NUM_CH];
 

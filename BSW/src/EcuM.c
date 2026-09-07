@@ -48,7 +48,7 @@ void EcuM_Init(void)
     NvM_ReadAll();
 
     /* 3. Initialize Diagnostic Event Manager */
-    Demf_Init();
+    Dem_Init();
 
     /* 4. Initialize Communication and Diagnostic Modules */
     Uart_Init(DEFAULT_BAUD_RATE);

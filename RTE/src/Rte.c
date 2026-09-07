@@ -12,10 +12,10 @@
 static uint8_t RTE_VAR_DutyA = 0U;
 static uint8_t RTE_VAR_DutyB = 0U;
 static uint16_t RTE_VAR_TargetFrequency = 0U;
-static uint16_t RTE_VAR_AdcRaw_Iin = 0U;
-static uint16_t RTE_VAR_AdcRaw_Vin = 0U;
-static uint16_t RTE_VAR_AdcRaw_Iout = 0U;
-static uint16_t RTE_VAR_AdcRaw_Vout = 0U;
+static float RTE_VAR_Physical_Iin = 0.0f;
+static float RTE_VAR_Physical_Vin = 0.0f;
+static float RTE_VAR_Physical_Iout = 0.0f;
+static float RTE_VAR_Physical_Vout = 0.0f;
 static uint8_t RTE_VAR_AdcScanDone = 0U;
 static uint16_t RTE_VAR_PidTargetSetpoint = 0U;
 static bool RTE_VAR_PidDisableFlag = false;
@@ -69,44 +69,44 @@ uint16_t Rte_Read_TargetFrequency(void)
     return RTE_VAR_TargetFrequency;
 }
 
-void Rte_Write_AdcRaw_Iin(uint16_t val) 
+void Rte_Write_Physical_Iin(float val) 
 {
-    RTE_VAR_AdcRaw_Iin = val;
+    RTE_VAR_Physical_Iin = val;
 }
 
-uint16_t Rte_Read_AdcRaw_Iin(void) 
+float Rte_Read_Physical_Iin(void) 
 {
-    return RTE_VAR_AdcRaw_Iin;
+    return RTE_VAR_Physical_Iin;
 }
 
-void Rte_Write_AdcRaw_Vin(uint16_t val) 
+void Rte_Write_Physical_Vin(float val) 
 {
-    RTE_VAR_AdcRaw_Vin = val;
+    RTE_VAR_Physical_Vin = val;
 }
 
-uint16_t Rte_Read_AdcRaw_Vin(void) 
+float Rte_Read_Physical_Vin(void) 
 {
-    return RTE_VAR_AdcRaw_Vin;
+    return RTE_VAR_Physical_Vin;
 }
 
-void Rte_Write_AdcRaw_Iout(uint16_t val) 
+void Rte_Write_Physical_Iout(float val) 
 {
-    RTE_VAR_AdcRaw_Iout = val;
+    RTE_VAR_Physical_Iout = val;
 }
 
-uint16_t Rte_Read_AdcRaw_Iout(void) 
+float Rte_Read_Physical_Iout(void) 
 {
-    return RTE_VAR_AdcRaw_Iout;
+    return RTE_VAR_Physical_Iout;
 }
 
-void Rte_Write_AdcRaw_Vout(uint16_t val) 
+void Rte_Write_Physical_Vout(float val) 
 {
-    RTE_VAR_AdcRaw_Vout = val;
+    RTE_VAR_Physical_Vout = val;
 }
 
-uint16_t Rte_Read_AdcRaw_Vout(void) 
+float Rte_Read_Physical_Vout(void) 
 {
-    return RTE_VAR_AdcRaw_Vout;
+    return RTE_VAR_Physical_Vout;
 }
 
 void Rte_Write_AdcScanDone(uint8_t val) 

@@ -13,7 +13,7 @@
  *******************************************************/
 
 /* Central Diagnostic Trouble Code (DTC) Fault Table */
-DTC_StatusType g_dtc_table[TOTAL_DTCS] = {
+DTC_StatusType g_dtc_table[] = {
     { 0x1A0100U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[0], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iin Short to VBAT */
     { 0x1A0101U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[1], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vin Short to VBAT */
     { 0x1A0102U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[2], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iout Short to VBAT */

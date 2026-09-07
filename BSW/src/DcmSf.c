@@ -53,8 +53,8 @@ typedef struct {
  * ===================================================================== */
 static void Dcm_Cb_UpdatePwmDuty(void)  { Pwm_SetDutyCycle(g_duty_a, g_duty_b); }
 static void Dcm_Cb_UpdatePwmFreq(void)  { Pwm_SetFrequency(g_target_frequency); }
-static void Dcm_Cb_UpdateRelayIn(void)  { (void)Rte_Call_RpRelayControl_SetRelayState(DIO_CHANNEL_RELAY_IN, (Dio_LevelType)g_relay_input_state); }
-static void Dcm_Cb_UpdateRelayOut(void) { (void)Rte_Call_RpRelayControl_SetRelayState(DIO_CHANNEL_RELAY_OUT, (Dio_LevelType)g_relay_output_state); }
+static void Dcm_Cb_UpdateRelayIn(void)  { (void)Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, (Dio_LevelType)g_relay_input_state); }
+static void Dcm_Cb_UpdateRelayOut(void) { (void)Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, (Dio_LevelType)g_relay_output_state); }
 
 /* =====================================================================
  * CENTRAL DID CONFIGURATION TABLE 
@@ -172,12 +172,12 @@ static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr)
     }
 }
 
-static void Dcm_Dsp_ClearDiagInfo(void)
+static void Dcm_Dsp_ClearFaultMem()(void)
 {
     /* Clear fault memory using DemSf */
     Dem_ClearDiagnosticInformation();
     
-    Dcm_SendPositiveResponse(UDS_SID_CLEAR_DIAG_INFO, NULL, 0U);
+    Dcm_SendPositiveResponse(UDS_SID_CLEAR_FAULT_MEM, NULL, 0U);
 }
 
 static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr)

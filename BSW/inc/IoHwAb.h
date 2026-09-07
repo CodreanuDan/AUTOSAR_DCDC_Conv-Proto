@@ -105,7 +105,7 @@ void IoHwAb_Sensor_MainFunction(void);
  */
 void IoHwAb_Actuator_MainFunction(void);
 
-}
+
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus
