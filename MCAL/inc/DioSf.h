@@ -35,9 +35,15 @@ typedef uint8_t Dio_LevelType;
 #define STD_HIGH  0x01U
 #endif
 
-/* Definitions for project specific DIO channels */
-#define DIO_CHANNEL_RELAY_IN   ((Dio_ChannelType)PD4)
-#define DIO_CHANNEL_RELAY_OUT  ((Dio_ChannelType)PD5)
+/* Definitions for Port identifiers */
+#define DIO_PORT_B             0U
+#define DIO_PORT_D             1U
+
+/* Definitions for project specific DIO channels mapping port and pin */
+#define DIO_CHANNEL_PWM_OC1A   ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB1))
+#define DIO_CHANNEL_PWM_OC1B   ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB2))
+#define DIO_CHANNEL_RELAY_IN   ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD4))
+#define DIO_CHANNEL_RELAY_OUT  ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD5))
 
 /*******************************************************
  *             START OF FUNCTION PROTOTYPES
@@ -45,8 +51,8 @@ typedef uint8_t Dio_LevelType;
 
 /**
  * Function name: Dio_ReadChannel
- * @brief Reads the physical state of a specific DIO pin.
- * @param: Dio_ChannelType ChannelId (Target pin identifier, e.g., PD4, PD5)
+ * @brief Reads the physical state of a specific DIO pin across PORTB and PORTD.
+ * @param: Dio_ChannelType ChannelId (Target channel identifier containing port and pin)
  * @return: Dio_LevelType (STD_HIGH if pin is HIGH, STD_LOW if pin is LOW)
  */
 Dio_LevelType Dio_ReadChannel(Dio_ChannelType ChannelId);
@@ -54,7 +60,7 @@ Dio_LevelType Dio_ReadChannel(Dio_ChannelType ChannelId);
 /**
  * Function name: Dio_WriteChannel
  * @brief Sets the physical output level of a specific DIO pin.
- * @param: Dio_ChannelType ChannelId (Target pin identifier, e.g., PD4, PD5)
+ * @param: Dio_ChannelType ChannelId (Target channel identifier)
  * @param: Dio_LevelType Level (STD_HIGH to activate, STD_LOW to deactivate)
  * @return: void
  */
@@ -63,7 +69,7 @@ void Dio_WriteChannel(Dio_ChannelType ChannelId, Dio_LevelType Level);
 /**
  * Function name: Dio_FlipChannel
  * @brief Toggles the physical state of a specific DIO pin.
- * @param: Dio_ChannelType ChannelId (Target pin identifier, e.g., PD4, PD5)
+ * @param: Dio_ChannelType ChannelId (Target channel identifier)
  * @return: Dio_LevelType The new physical state of the pin after toggle.
  */
 Dio_LevelType Dio_FlipChannel(Dio_ChannelType ChannelId);
