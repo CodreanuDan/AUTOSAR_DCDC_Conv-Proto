@@ -14,18 +14,18 @@
 
 /* Central Diagnostic Trouble Code (DTC) Fault Table */
 DTC_StatusType g_dtc_table[] = {
-    { 0x1A0100U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[0], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iin Short to VBAT */
-    { 0x1A0101U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[1], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vin Short to VBAT */
-    { 0x1A0102U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[2], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iout Short to VBAT */
-    { 0x1A0103U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[3], DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vout Short to VBAT */
-    { 0x1A0110U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[0], DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iin Short to GND */
-    { 0x1A0111U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[1], DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vin Short to GND */
-    { 0x1A0112U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[2], DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iout Short to GND */
-    { 0x1A0113U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[3], DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vout Short to GND */
-    { 0x1A0120U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[0], DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iin Open Circuit */
-    { 0x1A0121U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[1], DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE },  /* Vin Open Circuit */
-    { 0x1A0122U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[2], DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iout Open Circuit */
-    { 0x1A0123U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, &g_adc_raw[3], DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE }   /* Vout Open Circuit */
+    { 0x1A0100U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iin Short to VBAT */
+    { 0x1A0101U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vin Short to VBAT */
+    { 0x1A0102U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iout Short to VBAT */
+    { 0x1A0103U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vout Short to VBAT */
+    { 0x1A0110U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iin Short to GND */
+    { 0x1A0111U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vin Short to GND */
+    { 0x1A0112U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iout Short to GND */
+    { 0x1A0113U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vout Short to GND */
+    { 0x1A0120U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iin Open Circuit */
+    { 0x1A0121U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE },  /* Vin Open Circuit */
+    { 0x1A0122U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iout Open Circuit */
+    { 0x1A0123U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE }   /* Vout Open Circuit */
 };
 
 /* Dynamic calculation of total registered DTCs */
@@ -60,36 +60,40 @@ static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition);
 /**
  * Function name: DemSf_Monitor_ElectricalFaults
  * @brief Evaluates electrical raw ADC counts against defined threshold boundaries.
- * @param: uint16_t raw (Raw ADC conversion value)
+ * @param: uint8_t param (ADC Channel ID)
  * @param: uint8_t mode (Fault condition mode: SHORT_TO_GND, SHORT_TO_VBAT, OPEN_CIRCUIT)
  * @return: uint8_t (1 if fault condition is present, 0 otherwise)
  */
-uint8_t DemSf_Monitor_ElectricalFaults(uint16_t raw, uint8_t mode)
+uint8_t DemSf_Monitor_ElectricalFaults(uint8_t param, uint8_t mode)
 {
+    /* Read ADC raw buffer data and populate local buffer */
+    uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+    Adc_ReadGroup(raw_adc_buffer);
+
     if (mode == SHORT_TO_GND)
     {
-        if (raw == 0U) 
+        if (raw_adc_buffer[param] == 0U) 
         { 
             return 1U; 
         }
     }
     else if (mode == SHORT_TO_VBAT)
     {
-        if (raw == 1023U) 
+        if (raw_adc_buffer[param] == 1023U) 
         { 
             return 1U; 
         }
     }
     else if (mode == OPEN_CIRCUIT_VOLTAGE)
     {
-        if ((raw > 810U) && (raw != 1023U)) 
+        if ((raw_adc_buffer[param] > 810U) && (raw_adc_buffer[param] != 1023U)) 
         { 
             return 1U; 
         }
     }
     else if (mode == OPEN_CIRCUIT_CURRENT)
     {
-        if ((raw < 400U) && (raw != 0U)) 
+        if ((raw_adc_buffer[param] < 400U) && (raw_adc_buffer[param] != 0U)) 
         { 
             return 1U; 
         }

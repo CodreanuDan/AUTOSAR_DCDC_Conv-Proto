@@ -9,7 +9,7 @@
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
-
+static uint16_t s_pwm_top = 19999U; /* Default 100Hz at 16MHz (Prescaler = 8) */
 
 
 /************* END OF VARIABLE DEFINITIONS *************/

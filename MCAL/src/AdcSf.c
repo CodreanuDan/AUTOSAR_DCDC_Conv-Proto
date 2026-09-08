@@ -5,21 +5,19 @@
  */
 
 #include "AdcSf.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
-/* Array of ADC Channels raw values */
-uint16_t g_adc_raw[ADC_NUM_CH];
+/* Private MCAL internal buffers (Encapsulated, no global export) */
+static volatile uint16_t s_adc_raw_results[ADC_NUM_CHANNELS] = {0U};
+static volatile uint8_t  s_adc_current_channel = 0U;
+static volatile bool     s_adc_scan_done = true;
 
-/* Current channel during reading */
-volatile uint8_t g_adc_current_ch = 0;
-
-/* Flag to signal that an ADC Ch scan is completed */
-volatile uint8_t g_adc_scan_done = TRUE;
-
-/* Array of ADC Channels mapping */
-const uint8_t adc_channel_map[ADC_NUM_CH] = { 0, 1, 2, 3 };
+/* Mapping physical ADC multiplexer pins (A0, A1, A2, A3) */
+static const uint8_t s_adc_channel_map[ADC_NUM_CHANNELS] = { 0U, 1U, 2U, 3U };
 
 /************* END OF VARIABLE DEFINITIONS *************/
 
@@ -47,10 +45,13 @@ void Adc_ISR_Routine(void);
 void Adc_Init(void) 
 {
     /* Select AVcc as voltage reference (REFS0 = 1, REFS1 = 0) */
-    ADMUX  = (1 << REFS0);
+    ADMUX  = (1U << REFS0);
 
-    /* Enable ADC (ADEN), Enable ADC Interrupt (ADIE), set Prescaler to 128 (ADPS2:0) */
-    ADCSRA = (1 << ADEN) | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+    /* Enable ADC (ADEN), Enable ADC Interrupt (ADIE), set Prescaler to 128 (ADPS2..0 = 111) 
+       16MHz / 128 = 125kHz ADC Clock (Within recommended 50kHz - 200kHz) */
+    ADCSRA = (1U << ADEN) | (1U << ADIE) | (1U << ADPS2) | (1U << ADPS1) | (1U << ADPS0);
+
+    s_adc_scan_done = true;
 }
 
 /**
@@ -65,23 +66,55 @@ void Adc_Init(void)
 void Adc_StartScan(void)
 {
     /* Exit early if a scan sequence is already in progress */
-    if (g_adc_scan_done == FALSE) 
+    if (s_adc_scan_done == FALSE) 
     {
         return;
     }
 
     /* Reset scan status flag to mark scan as in progress */
-    g_adc_scan_done = FALSE;
+    s_adc_scan_done = FALSE;
 
     /* Reset the channel index back to the first channel (channel 0) */
-    g_adc_current_ch = 0; 
+    s_adc_current_channel = 0U; 
 
     /* Clear existing channel bits (bits 0-3) in ADMUX and apply the new channel address */
-    ADMUX = (ADMUX & 0xF0) | (adc_channel_map[0] & 0x0F);
+    ADMUX = (ADMUX & 0xF0) | (s_adc_channel_map[0] & 0x0F);
 
     /* Start the first ADC conversion by setting the ADC Start Conversion bit (ADSC) */
     ADCSRA |= (1 << ADSC);
 }
+
+
+/*
+ * Function name: Adc_IsScanDone
+ * @brief Checks if all configured channels have finished sampling.
+ * @param: void
+ * @return: bool (TRUE if scan complete, FALSE if ongoing)
+ */
+bool Adc_IsScanDone(void)
+{
+    return s_adc_scan_done;
+}
+
+
+/*
+ * Function name: Adc_ReadGroup
+ * @brief Copies sampled raw ADC values into the provided destination buffer.
+ * @param: uint16_t *buffer (Must have space for ADC_NUM_CHANNELS)
+ * @return: void
+ */
+void Adc_ReadGroup(uint16_t *buffer)
+{
+    if (buffer != NULL)
+    {
+        /* Copy sampled values safely into IoHwAb buffer */
+        for (uint8_t i = 0U; i < ADC_NUM_CHANNELS; i++)
+        {
+            buffer[i] = s_adc_raw_results[i];
+        }
+    }
+}
+
 
 /**
  * @brief Interrupt Service Routine (ISR) for ADC Conversion Complete.
@@ -93,23 +126,14 @@ void Adc_StartScan(void)
  */
 void Adc_ISR_Routine(void)
 {
-    /* Read the 10-bit raw ADC result from the hardware register */
-    uint16_t val = ADC;
-
-    /* Store the raw reading in the global buffer for the current channel */
-    g_adc_raw[g_adc_current_ch] = val;
-
-    /* Propagate the conversion results directly to upper software layers via RTE */
-    if      (g_adc_current_ch == 0) Rte_Write_AdcRaw_Iin(val);
-    else if (g_adc_current_ch == 1) Rte_Write_AdcRaw_Vin(val);
-    else if (g_adc_current_ch == 2) Rte_Write_AdcRaw_Iout(val);
-    else if (g_adc_current_ch == 3) Rte_Write_AdcRaw_Vout(val);
+    /* Read 10-bit raw result from ADC register */
+    s_adc_raw_results[s_adc_current_channel] = ADC;
 
     /* Move to the next channel in the sequence */
-    g_adc_current_ch++;
+    s_adc_current_channel++;
 
     /* Check if there are more channels left to convert in the scan chain */
-    if (g_adc_current_ch < ADC_NUM_CH) 
+    if (g_adc_current_ch < ADC_NUM_CHANNELS) 
     {
         /* Select the hardware pin mapping for the next channel (preserve VREF configuration) */
         ADMUX = (ADMUX & 0xF0) | (adc_channel_map[g_adc_current_ch] & 0x0F);
@@ -120,10 +144,7 @@ void Adc_ISR_Routine(void)
     else 
     {
         /* Mark the multi-channel scan cycle as finished */
-        g_adc_scan_done = TRUE;
-
-        /* Notify upper software layers via RTE that scan data is ready */
-        Rte_Write_AdcScanDone(1);
+        s_adc_scan_done = TRUE;
     }
 }
 

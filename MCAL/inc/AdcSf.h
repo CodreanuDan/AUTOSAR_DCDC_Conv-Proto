@@ -8,8 +8,6 @@
 #define ADC_SF_H
 
 /* Core libs */
-#include <avr/io.h>
-#include <avr/interrupt.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -22,23 +20,14 @@ extern "C" {
 #endif
 
 /*******************************************************
- *            START OF VARIABLE DECLARATIONS
+ *            TYPE DEFINITIONS & MACROS
  *******************************************************/
+#define ADC_NUM_CHANNELS  4U
 
-#define ADC_NUM_CH  4U
-
-
-/* Array of ADC Channels raw values */
-extern uint16_t g_adc_raw[ADC_NUM_CH];
-
-/* Current channel during reading */
-extern volatile uint8_t g_adc_current_ch;
-
-/* Flag to signal that an ADC Ch scan is completed */
-extern volatile uint8_t g_adc_scan_done;
-
-/* Array of ADC Channels used */
-extern const uint8_t adc_channel_map[ADC_NUM_CH];
+#define ADC_CH_IIN   0U
+#define ADC_CH_VIN   1U
+#define ADC_CH_IOUT  2U
+#define ADC_CH_VOUT  3U
 
 /************* END OF VARIABLE DECLARATIONS ************/
 
@@ -67,6 +56,23 @@ void Adc_Init(void);
  * @return: void
  */
 void Adc_StartScan(void);
+
+
+/*
+ * Function name: Adc_IsScanDone
+ * @brief Checks if all configured channels have finished sampling.
+ * @param: void
+ * @return: bool (TRUE if scan complete, FALSE if ongoing)
+ */
+bool Adc_IsScanDone(void);
+
+/*
+ * Function name: Adc_ReadGroup
+ * @brief Copies sampled raw ADC values into the provided destination buffer.
+ * @param: uint16_t *buffer (Must have space for ADC_NUM_CHANNELS)
+ * @return: void
+ */
+void Adc_ReadGroup(uint16_t *buffer);
 
 
 /************* END OF FUCTION PROTOTYPES ************/

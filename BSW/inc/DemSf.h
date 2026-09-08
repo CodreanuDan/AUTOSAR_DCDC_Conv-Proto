@@ -52,8 +52,8 @@ typedef struct {
     uint8_t            fault_status;         /* DTC_STATUS_MISSING, PASSIVE, or ACTIVE */
     uint8_t            debounce_cnt;         /* Current debouncing counter value */
     uint16_t           freeze_frame_data;    /* Captured ADC value on fault confirmation */
-    volatile uint16_t *adc_source_ptr;       /* Pointer to hardware raw ADC channel */
-    uint8_t          (*monitor_func)(uint16_t raw, uint8_t mode); /* Monitor function pointer */
+    uint8_t            adc_source_ptr;       /* Pointer to hardware raw ADC channel */
+    uint8_t          (*monitor_func)(uint8_t param, uint8_t mode); /* Monitor function pointer */
     uint8_t            error_mode;           /* Fault evaluation condition mode */
 } DTC_StatusType;
 
@@ -86,11 +86,11 @@ void DemSf_MainFunction(void);
 /**
  * Function name: DemSf_Monitor_ElectricalFaults
  * @brief Evaluates electrical raw ADC counts against defined threshold boundaries.
- * @param: uint16_t raw (Raw ADC conversion value)
+ * @param: uint8_t param (ADC Channel ID)
  * @param: uint8_t mode (Fault condition mode: SHORT_TO_GND, SHORT_TO_VBAT, OPEN_CIRCUIT)
  * @return: uint8_t (1 if fault condition is present, 0 otherwise)
  */
-uint8_t DemSf_Monitor_ElectricalFaults(uint16_t raw, uint8_t mode);
+uint8_t DemSf_Monitor_ElectricalFaults(uint8_t param, uint8_t mode);
 
 /**
  * Function name: Dem_ClearDiagnosticInformation

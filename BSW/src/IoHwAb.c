@@ -8,6 +8,7 @@
 #include "Rte.h"
 #include "PwmSf.h"
 #include "DioSf.h"
+#include "AdcSf.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -111,29 +112,30 @@ float IoHwAb_Analog_ReadVoltage(uint16_t raw)
  */
 void IoHwAb_Sensor_MainFunction(void)
 {
-    if (Rte_Read_AdcScanDone() == TRUE) 
+    uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+
+    if (Adc_IsScanDone() == TRUE) 
     {
+        /* Read ADC raw buffer data and populate local buffer */
+        Adc_ReadGroup(raw_adc_buffer);
+
         /* 1. Process Input Current (Iin): Convert to physical units and filter transient noise */
-        uint16_t raw_iin = Rte_Read_AdcRaw_Iin();
-        float physical_iin = IoHwAb_Analog_ConvertToAmps(raw_iin);
+        float physical_iin = IoHwAb_Analog_ConvertToAmps(raw_adc_buffer[ADC_CH_IIN]);
         float filtered_iin = MovAvg_Update(&s_filt_iin, physical_iin);
         Rte_Write_Physical_Iin(filtered_iin);
 
         /* 2. Process Input Voltage (Vin): Convert via resistor divider rules and filter ripples */
-        uint16_t raw_vin = Rte_Read_AdcRaw_Vin();
-        float physical_vin = IoHwAb_Analog_ReadVoltage(raw_vin);
+        float physical_vin = IoHwAb_Analog_ReadVoltage(raw_adc_buffer[ADC_CH_VIN]);
         float filtered_vin = MovAvg_Update(&s_filt_vin, physical_vin);
         Rte_Write_Physical_Vin(filtered_vin);
 
         /* 3. Process Output Current (Iout): Convert to physical units and filter transient noise */
-        uint16_t raw_iout = Rte_Read_AdcRaw_Iout();
-        float physical_iout = IoHwAb_Analog_ConvertToAmps(raw_iout);
+        float physical_iout = IoHwAb_Analog_ConvertToAmps(raw_adc_buffer[ADC_CH_IOUT]);
         float filtered_iout = MovAvg_Update(&s_filt_iout, physical_iout);
         Rte_Write_Physical_Iout(filtered_iout);
 
         /* 4. Process Output Voltage (Vout): Convert via resistor divider rules and filter ripples */
-        uint16_t raw_vout = Rte_Read_AdcRaw_Vout();
-        float physical_vout = IoHwAb_Analog_ReadVoltage(raw_vout);
+        float physical_vout = IoHwAb_Analog_ReadVoltage(raw_adc_buffer[ADC_CH_VOUT]);
         float filtered_vout = MovAvg_Update(&s_filt_vout, physical_vout);
         Rte_Write_Physical_Vout(filtered_vout);
     }
