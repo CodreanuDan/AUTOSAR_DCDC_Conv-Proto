@@ -83,6 +83,21 @@ void Pwm_SetFrequency(uint16_t new_freq_hz)
     }
 }
 
+uint16_t Pwm_ReadOcr1A(void)
+{
+    return OCR1A;
+}
+
+uint16_t Pwm_ReadOcr1B(void)
+{
+    return OCR1B;
+}
+
+uint16_t Pwm_ReadIcr1(void)
+{
+    return ICR1;
+}
+
 /************* END OF FUCTION DEFINITIONS ************/
 
 

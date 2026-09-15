@@ -60,6 +60,11 @@ void Pwm_SetDutyCycle(uint8_t duty_a, uint8_t duty_b);
  */
 void Pwm_SetFrequency(uint16_t new_freq_hz);
 
+uint16_t Pwm_ReadOcr1A(void);
+uint16_t Pwm_ReadOcr1B(void);
+uint16_t Pwm_ReadIcr1(void);
+
+
 /************* END OF FUCTION PROTOTYPES ************/
 
 

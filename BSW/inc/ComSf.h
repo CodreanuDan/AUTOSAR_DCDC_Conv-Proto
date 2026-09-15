@@ -29,6 +29,22 @@ extern "C" {
  *             START OF FUNCTION PROTOTYPES
  *******************************************************/
 
+/* Cyclic Transmission Control Setters & Getters (Used by DcmSf) */
+void Com_SetCyclicConvUpdates(uint8_t enable);
+uint8_t Com_GetCyclicConvUpdates(void);
+
+void Com_SetCyclicPwmUpdates(uint8_t enable);
+uint8_t Com_GetCyclicPwmUpdates(void);
+
+void Com_SetCyclicPidUpdates(uint8_t enable);
+uint8_t Com_GetCyclicPidUpdates(void);
+
+void Com_SetCyclicActUpdates(uint8_t enable);
+uint8_t Com_GetCyclicActUpdates(void);
+
+void Com_SetCyclicFaultUpdates(uint8_t enable);
+uint8_t Com_GetCyclicFaultUpdates(void);
+
 /**
  * Function name: Com_MainFunction_Rx
  * @brief Periodically polls the UART ring buffer, parses incoming bytes,

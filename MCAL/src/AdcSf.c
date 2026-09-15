@@ -7,6 +7,7 @@
 #include "AdcSf.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdlib.h>
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -105,10 +106,11 @@ bool Adc_IsScanDone(void)
  */
 void Adc_ReadGroup(uint16_t *buffer)
 {
+	uint8_t i;
     if (buffer != NULL)
     {
         /* Copy sampled values safely into IoHwAb buffer */
-        for (uint8_t i = 0U; i < ADC_NUM_CHANNELS; i++)
+        for (i = 0U; i < ADC_NUM_CHANNELS; i++)
         {
             buffer[i] = s_adc_raw_results[i];
         }
@@ -133,10 +135,10 @@ void Adc_ISR_Routine(void)
     s_adc_current_channel++;
 
     /* Check if there are more channels left to convert in the scan chain */
-    if (g_adc_current_ch < ADC_NUM_CHANNELS) 
+    if (s_adc_current_channel < ADC_NUM_CHANNELS) 
     {
         /* Select the hardware pin mapping for the next channel (preserve VREF configuration) */
-        ADMUX = (ADMUX & 0xF0) | (adc_channel_map[g_adc_current_ch] & 0x0F);
+        ADMUX = (ADMUX & 0xF0) | (s_adc_channel_map[s_adc_current_channel] & 0x0F);
 
         /* Start the conversion for the next channel */
         ADCSRA |= (1 << ADSC);

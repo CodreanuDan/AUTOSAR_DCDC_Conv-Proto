@@ -4,6 +4,7 @@
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
 
+#include <stddef.h>
 #include "PduR.h"
 #include "DcmSf.h"
 

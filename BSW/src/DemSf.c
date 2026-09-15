@@ -48,7 +48,8 @@ static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition);
  void Dem_Init(void)
 {
     /* Initialize default fault state flags */
-    for (uint8_t i = 0U; i < TOTAL_DTCS; i++)
+	uint8_t i;
+    for (i = 0U; i < TOTAL_DTCS; i++)
     {
         g_dtc_table[i].qualifying_status = DEM_STATUS_OK;
         g_dtc_table[i].fault_status      = DTC_STATUS_MISSING;
@@ -137,10 +138,10 @@ static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition)
             dtc->qualifying_status = DEM_STATUS_CONFIRMED;
             dtc->fault_status = DTC_STATUS_ACTIVE;
             
-            if (dtc->adc_source_ptr != NULL)
-            {
-                dtc->freeze_frame_data = *(dtc->adc_source_ptr);
-            }
+			/* Fetch live ADC raw sample for freeze frame data */
+            uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+            Adc_ReadGroup(raw_adc_buffer);
+            dtc->freeze_frame_data = raw_adc_buffer[dtc->adc_source_ptr];
         }
     }
     /* CASE 2: Error condition is not active*/
@@ -177,13 +178,14 @@ static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition)
  */
 void DemSf_MainFunction(void) 
 {
-    for (uint8_t i = 0U; i < TOTAL_DTCS; i++) 
+	uint8_t i;
+    for (i = 0U; i < TOTAL_DTCS; i++) 
     {
         uint8_t error_detected = 0U;
         
         if ((g_dtc_table[i].monitor_func != NULL) && (g_dtc_table[i].adc_source_ptr != NULL))
         {
-            error_detected = g_dtc_table[i].monitor_func(*(g_dtc_table[i].adc_source_ptr), g_dtc_table[i].error_mode);
+            error_detected = g_dtc_table[i].monitor_func((g_dtc_table[i].adc_source_ptr), g_dtc_table[i].error_mode);
         }
         
         Dem_UpdateEvent(&g_dtc_table[i], error_detected);
@@ -198,7 +200,8 @@ void DemSf_MainFunction(void)
  */
 void Dem_ClearDiagnosticInformation(void)
 {
-    for (uint8_t i = 0U; i < TOTAL_DTCS; i++)
+	uint8_t i;
+    for (i = 0U; i < TOTAL_DTCS; i++)
     {
         g_dtc_table[i].qualifying_status = DEM_STATUS_OK;
         g_dtc_table[i].fault_status      = DTC_STATUS_MISSING;

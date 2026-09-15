@@ -66,7 +66,7 @@ static void Timer0_ISR_Routine(void)
 
 ISR(TIMER0_COMPA_vect) 
 {
-    Gpt_ISR_Routine();
+    Timer0_ISR_Routine();
 }
 
 /********************** END OF ISR ********************/

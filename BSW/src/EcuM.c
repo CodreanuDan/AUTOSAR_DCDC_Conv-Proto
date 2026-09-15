@@ -16,7 +16,7 @@
 #include "GptSf.h"
 #include "UartSf.h"
 #include "WdgSf.h"
-#include "NvM.h"
+//#include "NvM.h"
 #include "DemSf.h"
 #include "ComSf.h"
 #include "DcmSf.h"
@@ -44,8 +44,8 @@ void EcuM_Init(void)
     Port_Init();
 
     /* 2. Initialize Non-Volatile Memory & Restore Persistent Configurations */
-    NvM_Init();
-    NvM_ReadAll();
+    //NvM_Init();
+    //NvM_ReadAll();
 
     /* 3. Initialize Diagnostic Event Manager */
     Dem_Init();
@@ -113,7 +113,7 @@ void EcuM_MainFunction(void)
             Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, STD_LOW);
 
             /* 2. Save all persistent calibrations and fault memories to EEPROM via NvM */
-            NvM_WriteAll();
+            //NvM_WriteAll();
 
             /* 3. Perform hardware reset if requested via UDS 0x11 */
             if (s_ecum_reset_req == ECUM_RESET_SOFT)

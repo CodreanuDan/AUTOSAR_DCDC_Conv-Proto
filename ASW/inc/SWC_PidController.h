@@ -10,6 +10,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************
  *            TYPE DEFINITIONS & MACROS
  *******************************************************/
@@ -22,5 +26,9 @@
  *             START OF FUNCTION PROTOTYPES
  *******************************************************/
 void SWC_PidController_Runnable(float v_in, float v_out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SWC_PID_CONTROLLER_H */

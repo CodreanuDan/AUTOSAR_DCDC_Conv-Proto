@@ -14,6 +14,9 @@
 #include "PduR.h"
 #include "AdcSf.h"
 #include "DemSf.h"
+#include "PwmSf.h"
+#include "Rte.h"
+#include "DioSf.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -26,19 +29,31 @@ static uint8_t s_alive_counter_DiagFrame_PID             = 0U;
 static uint8_t s_alive_counter_DiagFrame_Act             = 0U;
 static uint8_t s_alive_counter_DiagFrame_DTC             = 0U;
 
-/* External global flags mapped to DCM DIDs (0x0106 - 0x0110) for cyclic control */
-extern uint8_t g_cyclic_conv_updates;   /* DID 0x0110: CycCnvUpdt */
-extern uint8_t g_cyclic_pwm_updates;    /* DID 0x0108: CycPwmUpdt */
-extern uint8_t g_cyclic_pid_updates;    /* DID 0x0107: CycPidUpdt */
-extern uint8_t g_cyclic_act_updates;    /* DID 0x0109: CycActUpdt */
-extern uint8_t g_cyclic_fault_updates;  /* DID 0x0106: CycDemUpdt */
+/* Static Cyclic Transmission Flags (Controlled via Setters) */
+static uint8_t s_cyclic_conv_updates  = 1U; /* DID 0x0110 CycCnvUpdt: Default enabled */
+static uint8_t s_cyclic_pwm_updates   = 1U; /* DID 0x0108 CycPwmUpdt: Default enabled */
+static uint8_t s_cyclic_pid_updates   = 1U; /* DID 0x0107 CycPidUpdt: Default enabled */
+static uint8_t s_cyclic_act_updates   = 1U; /* DID 0x0109 CycActUpdt: Default enabled */
+static uint8_t s_cyclic_fault_updates = 1U; /* DID 0x0106 CycDemUpdt: Default enabled */
 
-/* External global variables for telemetry data */
-extern uint16_t g_PidCtrl_TargetSetpoint;
-extern float    g_last_pid_output;
-extern uint8_t  g_converter_state;
-extern uint8_t  g_relay_input_state;
-extern uint8_t  g_relay_output_state;
+
+/*******************************************************
+ *      CYCLIC CONTROL SETTERS & GETTERS FOR DCM
+ *******************************************************/
+void Com_SetCyclicConvUpdates(uint8_t enable)  { s_cyclic_conv_updates = enable; }
+uint8_t Com_GetCyclicConvUpdates(void)          { return s_cyclic_conv_updates; }
+
+void Com_SetCyclicPwmUpdates(uint8_t enable)   { s_cyclic_pwm_updates = enable; }
+uint8_t Com_GetCyclicPwmUpdates(void)           { return s_cyclic_pwm_updates; }
+
+void Com_SetCyclicPidUpdates(uint8_t enable)   { s_cyclic_pid_updates = enable; }
+uint8_t Com_GetCyclicPidUpdates(void)           { return s_cyclic_pid_updates; }
+
+void Com_SetCyclicActUpdates(uint8_t enable)   { s_cyclic_act_updates = enable; }
+uint8_t Com_GetCyclicActUpdates(void)           { return s_cyclic_act_updates; }
+
+void Com_SetCyclicFaultUpdates(uint8_t enable) { s_cyclic_fault_updates = enable; }
+uint8_t Com_GetCyclicFaultUpdates(void)         { return s_cyclic_fault_updates; }
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -53,6 +68,10 @@ extern uint8_t  g_relay_output_state;
  */
 void Com_MainFunction_Rx(void)
 {
+	uint8_t i_1;
+	uint8_t i_2;
+	uint8_t i_3;
+
     while (1)
     {
         /* Obtain bytes available in UART circular buffer */
@@ -72,24 +91,24 @@ void Com_MainFunction_Rx(void)
             uint8_t rx_frame[COM_RX_FRAME_SIZE];
 
             /* Copy full 12-byte payload from ring buffer without consuming yet */
-            for (uint8_t i = 0U; i < COM_RX_FRAME_SIZE; i++) 
+            for (i_1 = 0U; i_1 < COM_RX_FRAME_SIZE; i_1++) 
             {
-                rx_frame[i] = Uart_GetRxBufferByte(Uart_GetRxPeekIndex(i));
+                rx_frame[i_1] = Uart_GetRxBufferByte(Uart_GetRxPeekIndex(i_1));
             }
 
             /* Calculate payload checksum over the first 10 bytes */
             uint8_t calc_checksum = 0U;
 
-            for (uint8_t i = 0U; i < 10U; i++)
+            for (i_2 = 0U;i_2 < 10U;i_2++)
             {
-                calc_checksum += rx_frame[i];
+                calc_checksum += rx_frame[i_2];
             }
 
             /* Validate checksum against frame index 10 */
             if (calc_checksum == rx_frame[10])
             {
                 /* Valid packet: Advance buffer tail by 12 positions */
-                for (uint8_t i = 0U; i < COM_RX_FRAME_SIZE; i++) 
+                for (i_3 = 0U;i_3< COM_RX_FRAME_SIZE; i_3++) 
                 {
                     (void)Uart_RxByte(); 
                 }
@@ -135,35 +154,35 @@ void Com_MainFunction_Tx(void)
     timer_fault_ms += 10U;
 
     /* 1. Send ADC Monitoring Frame (0xAA) every 50ms if cyclic updates enabled via DID 0x0110 */
-    if ((g_cyclic_conv_updates != 0U) && (timer_adc_ms >= 50U))
+    if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 50U))
     {
         timer_adc_ms = 0U;
         Com_Send_DiagFrame_ConvMonitorData();
     }
 
     /* 2. Send PWM Info Frame (0xA2) every 100ms if cyclic updates enabled via DID 0x0108 */
-    if ((g_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 100U))
+    if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 100U))
     {
         timer_pwm_ms = 0U;
         Com_Send_DiagFrame_PWMInfo();
     }
 
     /* 3. Send PID Info Frame (0xA3) every 100ms if cyclic updates enabled via DID 0x0107 */
-    if ((g_cyclic_pid_updates != 0U) && (timer_pid_ms >= 100U))
+    if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 100U))
     {
         timer_pid_ms = 0U;
         Com_Send_DiagFrame_PIDInfo();
     }
 
     /* 4. Send Actuator Status Frame (0xA4) every 200ms if cyclic updates enabled via DID 0x0109 */
-    if ((g_cyclic_act_updates != 0U) && (timer_act_ms >= 200U))
+    if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 200U))
     {
         timer_act_ms = 0U;
         Com_Send_DiagFrame_ActuatorInfo();
     }
 
     /* 5. Send Active DTC Memory Frame (0xA5) every 500ms if cyclic updates enabled via DID 0x0106 */
-    if ((g_cyclic_fault_updates != 0U) && (timer_fault_ms >= 500U))
+    if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 500U))
     {
         timer_fault_ms = 0U;
         Com_Send_ActiveDTC_Frames();
@@ -181,6 +200,7 @@ void Com_MainFunction_Tx(void)
  */
 void Com_Send_DiagFrame_ConvMonitorData(void)
 {
+	uint8_t i;
     uint8_t checksum = 0U;
     
     /* 1. Header byte */
@@ -188,9 +208,17 @@ void Com_Send_DiagFrame_ConvMonitorData(void)
     checksum += 0xAAU;
     
     /* 2. ADC Data payload (4 channels x 2 bytes = 8 bytes) */
-    for (uint8_t i = 0U; i < ADC_NUM_CH; i++)
+	uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+	if (Adc_IsScanDone() == TRUE) 
     {
-        uint16_t val = g_adc_raw[i];
+        /* Read ADC raw buffer data and populate local buffer */
+        Adc_ReadGroup(raw_adc_buffer);
+	}
+	
+	/* Send Adc Conv Data */
+    for (i = 0U; i < ADC_NUM_CHANNELS; i++)
+    {
+        uint16_t val = raw_adc_buffer[i];
         uint8_t low_byte = (uint8_t)(val & 0xFFU);
         uint8_t high_byte = (uint8_t)((val >> 8U) & 0xFFU);
         
@@ -223,9 +251,9 @@ void Com_Send_DiagFrame_PWMInfo(void)
     uint8_t checksum = 0U;
     uint8_t bridge_status = 0U; 
     
-    uint16_t ocr1a_val = OCR1A;
-    uint16_t ocr1b_val = OCR1B;
-    uint16_t top_val   = ICR1;
+    uint16_t ocr1a_val = Pwm_ReadOcr1A();
+    uint16_t ocr1b_val = Pwm_ReadOcr1B();
+    uint16_t top_val   = Pwm_ReadIcr1();
 
     /* Calculate current operational PWM frequency from timer registers */
     uint16_t pwm_frequency_hz = (uint16_t)(16000000UL / (1UL * (1UL + top_val))); 
@@ -290,22 +318,28 @@ void Com_Send_DiagFrame_PWMInfo(void)
  */
 void Com_Send_DiagFrame_PIDInfo(void)
 {
+	uint8_t i;
     uint8_t checksum = 0U;
     
     /* 1. Header byte */
     Uart_TxByte(0xA3U); 
     checksum += 0xA3U;
+
+	/* Fetch current values from RTE interfaces */
+    uint16_t setpoint = Rte_Read_PidTargetSetpoint();
+    uint8_t last_out = Rte_Read_LastPidOutput();
+    uint8_t conv_state = Rte_Read_ConverterState();
     
     /* 2. Current Setpoint (2 bytes) */
-    uint8_t sp_high = (uint8_t)((g_PidCtrl_TargetSetpoint >> 8U) & 0xFFU);
-    uint8_t sp_low  = (uint8_t)(g_PidCtrl_TargetSetpoint & 0xFFU);
+    uint8_t sp_high = (uint8_t)((setpoint >> 8U) & 0xFFU);
+    uint8_t sp_low  = (uint8_t)(setpoint & 0xFFU);
     Uart_TxByte(sp_low);   
     checksum += sp_low;
     Uart_TxByte(sp_high);  
     checksum += sp_high;
 
     /* 3. PID Output (2 bytes - scaled by 10 for decimal precision) */
-    uint16_t pid_out_raw = (uint16_t)(g_last_pid_output * 10.0f);
+    uint16_t pid_out_raw = (uint16_t)(last_out * 10.0f);
     uint8_t out_low = (uint8_t)(pid_out_raw & 0xFFU);
     uint8_t out_high = (uint8_t)((pid_out_raw >> 8U) & 0xFFU);
     Uart_TxByte(out_low);  
@@ -314,11 +348,11 @@ void Com_Send_DiagFrame_PIDInfo(void)
     checksum += out_high;
 
     /* 4. Converter state (1 byte) */
-    Uart_TxByte(g_converter_state); 
-    checksum += g_converter_state;
+    Uart_TxByte(conv_state); 
+    checksum += conv_state;
 
     /* 5. Padding (3 bytes) */
-    for (uint8_t i = 0U; i < 3U; i++) 
+    for (i = 0U; i < 3U; i++) 
     {
         Uart_TxByte(0x00U);
         checksum += 0x00U;
@@ -342,20 +376,25 @@ void Com_Send_DiagFrame_PIDInfo(void)
  */
 void Com_Send_DiagFrame_ActuatorInfo(void)
 {
+	uint8_t i;
     uint8_t checksum = 0U;
     
     /* 1. Header byte */
     Uart_TxByte(0xA4U); 
     checksum += 0xA4U;
 
+	/* Fetch relay states directly from DIO driver */
+    uint8_t relay_in = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_IN);
+    uint8_t relay_out = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_OUT);
+
     /* 2. Relay states */
-    Uart_TxByte(g_relay_input_state);  
-    checksum += g_relay_input_state;
-    Uart_TxByte(g_relay_output_state); 
-    checksum += g_relay_output_state;
+    Uart_TxByte(relay_in);  
+    checksum += relay_in;
+    Uart_TxByte(relay_out); 
+    checksum += relay_out;
 
     /* 3. Padding (6 bytes) */
-    for (uint8_t i = 0U; i < 6U; i++) 
+    for (i = 0U; i < 6U; i++) 
     {
         Uart_TxByte(0x00U);
         checksum += 0x00U;
@@ -380,12 +419,19 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
  */
 void Com_Send_ActiveDTC_Frames(void)
 {
+	uint8_t i;
+	uint8_t f;
+	uint8_t p;
+	uint8_t d;
+	int8_t b;
+	uint8_t p_2;
+
     uint8_t total_dtcs = Dem_GetTotalDtcs();
     uint8_t active_indices[total_dtcs];
     uint8_t active_count = 0U;
 
     /* Filter active and passive faults from DEM table */
-    for (uint8_t i = 0U; i < total_dtcs; i++)
+    for (i = 0U; i < total_dtcs; i++)
     {
         if (g_dtc_table[i].fault_status != DTC_STATUS_MISSING)
         {
@@ -400,7 +446,7 @@ void Com_Send_ActiveDTC_Frames(void)
         Uart_TxByte(0xA5U); 
         checksum += 0xA5U;
         
-        for (uint8_t p = 0U; p < 8U; p++)
+        for (p = 0U; p < 8U; p++)
         {
             Uart_TxByte(0x00U); 
             checksum += 0x00U;
@@ -419,14 +465,14 @@ void Com_Send_ActiveDTC_Frames(void)
     /* Calculate total required 12-byte frames (2 DTCs per frame) */
     uint8_t total_frames = (active_count + 1U) / 2U; 
 
-    for (uint8_t f = 0U; f < total_frames; f++)
+    for (f = 0U; f < total_frames; f++)
     {
         uint8_t checksum = 0U;
 
         Uart_TxByte(0xA5U); 
         checksum += 0xA5U;
 
-        for (uint8_t d = 0U; d < 2U; d++)
+        for (d = 0U; d < 2U; d++)
         {
             uint8_t dtc_idx_array_pos = (f * 2U) + d;
             if (dtc_idx_array_pos < active_count)
@@ -436,7 +482,7 @@ void Com_Send_ActiveDTC_Frames(void)
                 uint8_t status = g_dtc_table[real_dtc_index].fault_status;
 
                 /* Pack 24-bit DTC code */
-                for (int8_t b = 2; b >= 0; b--)
+                for (b = 2; b >= 0; b--)
                 {
                     uint8_t byte_val = (uint8_t)((code >> (b * 8)) & 0xFFU);
                     Uart_TxByte(byte_val); 
@@ -448,7 +494,7 @@ void Com_Send_ActiveDTC_Frames(void)
             }
             else
             {
-                for (uint8_t p = 0U; p < 4U; p++)
+                for (p_2 = 0U; p_2< 4U; p_2++)
                 {
                     Uart_TxByte(0x00U); 
                     checksum += 0x00U;
