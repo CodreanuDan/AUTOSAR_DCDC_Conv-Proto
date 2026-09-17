@@ -82,11 +82,11 @@ static void Dcm_Cb_Write_PidDisableFlag(const uint8_t *data_in) { Rte_Write_PidD
 
 /* DID 0x0104: Relay Input State (MCAL Direct) */
 static void Dcm_Cb_Read_RelayIn(uint8_t *data_out) { data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_IN);}
-static void Dcm_Cb_Write_RelayIn(const uint8_t *data_in){ (void)Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, (Dio_LevelType)data_in[0]);}
+static void Dcm_Cb_Write_RelayIn(const uint8_t *data_in){ IoHwAb_SetRelayInput(data_in[0]); }
 
 /* DID 0x0105: Relay Output State (MCAL Direct) */
 static void Dcm_Cb_Read_RelayOut(uint8_t *data_out){ data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_OUT);}
-static void Dcm_Cb_Write_RelayOut(const uint8_t *data_in) { (void)Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, (Dio_LevelType)data_in[0]);}
+static void Dcm_Cb_Write_RelayOut(const uint8_t *data_in){ IoHwAb_SetRelayOutput(data_in[0]); }
 
 /* Callbacks for Cyclic DIDs on ComSf */
 static void Dcm_Cb_Read_CycFault(uint8_t *out) { out[0] = Com_GetCyclicFaultUpdates(); }

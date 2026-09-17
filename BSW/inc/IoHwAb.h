@@ -99,11 +99,27 @@ void IoHwAb_Sensor_MainFunction(void);
 
 /*
  * Function name: IoHwAb_Actuator_MainFunction
- * @brief Translates RTE logical actuator requests into direct MCAL hardware executions.
+ * @brief Translates RTE PWM into direct MCAL hardware executions.
  * @param: void
  * @return: void
  */
 void IoHwAb_Actuator_MainFunction(void);
+
+/**
+ * Function name: IoHwAb_SetRelayInput
+ * @brief Applies the requested logical state to the input relay's physical pin.
+ * @param: uint8_t state (0 = OFF, 1 = ON)
+ * @return: void
+ */
+void IoHwAb_SetRelayInput(uint8_t state);
+
+/**
+ * Function name: IoHwAb_SetRelayOutput
+ * @brief Applies the requested logical state to the output relay's physical pin.
+ * @param: uint8_t state (0 = OFF, 1= ON)
+ * @return: void
+ */
+void IoHwAb_SetRelayOutput(uint8_t state);
 
 
 /************* END OF FUNCTION PROTOTYPES ************/

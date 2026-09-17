@@ -256,7 +256,7 @@ void Com_Send_DiagFrame_PWMInfo(void)
     uint16_t top_val   = Pwm_ReadIcr1();
 
     /* Calculate current operational PWM frequency from timer registers */
-    uint16_t pwm_frequency_hz = (uint16_t)(16000000UL / (1UL * (1UL + top_val))); 
+    uint16_t pwm_frequency_hz = (uint16_t)(16000000UL / (8UL * (1UL + top_val))); 
 
     /* Determine bridge status based on OCR register limits */
     if (ocr1a_val >= (uint16_t)(top_val * 0.99f))       { bridge_status = 1U; } 

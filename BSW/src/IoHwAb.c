@@ -144,7 +144,7 @@ void IoHwAb_Sensor_MainFunction(void)
 
 /*
  * Function name: IoHwAb_Actuator_MainFunction
- * @brief Translates RTE logical actuator requests into direct MCAL hardware executions.
+ * @brief Translates RTE PWM into direct MCAL hardware executions.
  * @param: void
  * @return: void
  */
@@ -153,10 +153,28 @@ void IoHwAb_Actuator_MainFunction(void)
     uint8_t duty_a = Rte_Read_DutyA();
     uint8_t duty_b = Rte_Read_DutyB();
     Pwm_SetDutyCycle(duty_a, duty_b);
-
-    uint8_t relay_in_cmd = Rte_Read_RelayInputState();
-    uint8_t relay_out_cmd = Rte_Read_RelayOutputState();
-    Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, (relay_in_cmd > 0U) ? STD_HIGH : STD_LOW);
-    Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, (relay_out_cmd > 0U) ? STD_HIGH : STD_LOW);
 }
+
+/**
+ * Function name: IoHwAb_SetRelayInput
+ * @brief Applies the requested logical state to the input relay's physical pin.
+ * @param: uint8_t state (0 = OFF, 1 = ON)
+ * @return: void
+ */
+void IoHwAb_SetRelayInput(uint8_t state)
+{
+    Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, (state > 0U) ? STD_HIGH : STD_LOW);
+}
+
+/**
+ * Function name: IoHwAb_SetRelayOutput
+ * @brief Applies the requested logical state to the output relay's physical pin.
+ * @param: uint8_t state (0 = OFF, 1= ON)
+ * @return: void
+ */
+void IoHwAb_SetRelayOutput(uint8_t state)
+{
+    Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, (state > 0U) ? STD_HIGH : STD_LOW);
+}
+
 /************* END OF FUNCTION DEFINITIONS ************/

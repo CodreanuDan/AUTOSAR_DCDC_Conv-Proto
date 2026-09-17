@@ -9,7 +9,7 @@
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
-static uint16_t s_pwm_top = 19999U; /* Default 100Hz at 16MHz (Prescaler = 8) */
+
 
 
 /************* END OF VARIABLE DEFINITIONS *************/
@@ -34,7 +34,7 @@ static uint16_t s_pwm_top = 19999U; /* Default 100Hz at 16MHz (Prescaler = 8) */
 void Timer1_Pwm_Init(uint16_t target_freq_hz)
 {
     /* Calculate ICR1 TOP value: TOP = (F_CPU / (Prescaler * Target_Freq)) - 1 */
-    uint16_t top = (uint16_t)(F_CPU / (1UL * target_freq_hz) - 1UL);
+    uint16_t top = (uint16_t)(F_CPU / (8UL * target_freq_hz) - 1UL);
     ICR1 = top;
 
     /* Configure Timer1 Control Registers:
@@ -43,8 +43,8 @@ void Timer1_Pwm_Init(uint16_t target_freq_hz)
      */
     TCCR1A = (1 << COM1A1) | (1 << COM1B1) | (1 << WGM11);
 
-    /* CS10:1 -> No prescaling (Prescaler = 1) */
-    TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS10);
+    /* Set clock prescaler to 8 (CS11 = 1) */
+    TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11);
 
     /* Set default safe duty cycle (98%) */
     OCR1A = (uint16_t)(top * 0.98f);
@@ -79,7 +79,7 @@ void Pwm_SetFrequency(uint16_t new_freq_hz)
     if (new_freq_hz > 0U)
     {
         /* Recalculate ICR1 TOP value for new frequency */
-        ICR1 = (uint16_t)(F_CPU / (1UL * new_freq_hz) - 1UL);
+        ICR1 = (uint16_t)(F_CPU / (8UL * new_freq_hz) - 1UL);
     }
 }
 
