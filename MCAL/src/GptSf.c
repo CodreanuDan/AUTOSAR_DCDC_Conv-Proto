@@ -13,12 +13,23 @@
 /* Simple 1ms tick for periodic sampling - Incremented by Timer0 Compare Match A interrupt every 1 millisecond.*/
 extern volatile uint32_t g_tick_ms = 0;
 
+/* =====================================================================
+ * OS SCHEDULER INFRASTRUCTURE
+ * ===================================================================== */
+extern volatile uint8_t g_flag_task_10ms  = 0U;
+extern volatile uint8_t g_flag_task_50ms = 0U;
+extern volatile uint8_t g_flag_task_500ms = 0U;
+
 /************* END OF VARIABLE DEFINITIONS *************/
 
 /*******************************************************
  *               Local Function Prototypes
  */
 static void Timer0_ISR_Routine(void);
+
+/* OS Timer Hook called from GPT driver interrupt tick every 1ms */
+static void Os_TimerTick_Hook(void);
+
 /*************End of Local Function Prototypes *********/
 
 
@@ -64,9 +75,29 @@ static void Timer0_ISR_Routine(void)
 
 /******************* START OF ISR ********************/
 
+/* OS Timer Hook called from GPT driver interrupt tick every 1ms */
+static void Os_TimerTick_Hook(void)
+{
+    static uint16_t timer_10ms = 0U;
+    static uint16_t timer_50ms = 0U;
+    static uint16_t timer_500ms = 0U;
+
+    timer_10ms++;
+    timer_50ms++;
+    timer_500ms++;
+
+    if (timer_10ms >= 10U)   { timer_10ms = 0U;   g_flag_task_10ms = 1U; }
+    if (timer_50ms >= 50U) { timer_50ms = 0U;  g_flag_task_50ms = 1U; }
+    if (timer_500ms >= 500U) { timer_500ms = 0U;  g_flag_task_500ms = 1U; }
+}
+
+
 ISR(TIMER0_COMPA_vect) 
 {
     Timer0_ISR_Routine();
+
+	/* Trigger the OS scheduler tick */
+    Os_TimerTick_Hook();
 }
 
 /********************** END OF ISR ********************/

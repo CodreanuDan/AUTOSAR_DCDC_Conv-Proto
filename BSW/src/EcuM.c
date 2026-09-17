@@ -16,7 +16,7 @@
 #include "GptSf.h"
 #include "UartSf.h"
 #include "WdgSf.h"
-//#include "NvM.h"
+#include "NvM.h"
 #include "DemSf.h"
 #include "ComSf.h"
 #include "DcmSf.h"
@@ -44,8 +44,8 @@ void EcuM_Init(void)
     Port_Init();
 
     /* 2. Initialize Non-Volatile Memory & Restore Persistent Configurations */
-    //NvM_Init();
-    //NvM_ReadAll();
+    NvM_Init();
+    NvM_ReadAll();
 
     /* 3. Initialize Diagnostic Event Manager */
     Dem_Init();
@@ -60,10 +60,19 @@ void EcuM_Init(void)
     Timer1_Pwm_Init(100U); /* Default initial PWM frequency: 100Hz */
 
     /* 6. Initialize Watchdog Timer (2 seconds timeout) */
-    Wdg_Init(WDTO_2S);
+    //Wdg_Init(WDTO_2S);
 
     /* 7. Enable Global Interrupts */
     sei();
+
+	/* TRIMITERE TEST DE CONEXIUNE */
+    Uart_TxByte('S');
+    Uart_TxByte('T');
+    Uart_TxByte('A');
+    Uart_TxByte('R');
+    Uart_TxByte('T');
+    Uart_TxByte('\n');
+
 
     /* 8. Transition to RUN state */
     s_ecum_state = ECUM_STATE_RUN;

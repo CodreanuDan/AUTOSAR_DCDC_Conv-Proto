@@ -29,6 +29,13 @@ extern "C" {
 /* Simple 1ms tick for periodic sampling - Incremented by Timer0 Compare Match A interrupt every 1 millisecond.*/
 extern volatile uint32_t g_tick_ms;
 
+/* =====================================================================
+ * OS SCHEDULER INFRASTRUCTURE
+ * ===================================================================== */
+extern volatile uint8_t g_flag_task_10ms;
+extern volatile uint8_t g_flag_task_50ms;
+extern volatile uint8_t g_flag_task_500ms;
+
 /************* END OF VARIABLE DECLARATIONS ************/
 
 /*******************************************************

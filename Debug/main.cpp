@@ -41,50 +41,18 @@ void peripheral_loop() {
 #include "ComSf.h"
 #include "DcmSf.h"
 #include "AdcSf.h"
+#include "GptSf.h"
 
 /* ASW Runnable APIs */
 #include "SWC_SensorMeasurement.h"
 #include "SWC_PidController.h"
 void peripheral_setup ();
 void peripheral_loop ();
-void Os_TimerTick_Hook (void );
 void App_Task_10ms (void );
 void App_Task_50ms (void );
 void App_Task_500ms (void );
 int main (void );
-#line 45
-
-
-/* =====================================================================
- * OS SCHEDULER INFRASTRUCTURE
- * ===================================================================== */
-volatile uint8_t g_flag_task_10ms  = 0U;
-volatile uint8_t g_flag_task_50ms = 0U;
-volatile uint8_t g_flag_task_500ms = 0U;
-
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-
-/* OS Timer Hook called from GPT driver interrupt tick every 1ms */
-void Os_TimerTick_Hook(void)
-{
-    static uint16_t timer_10ms = 0U;
-    static uint16_t timer_50ms = 0U;
-    static uint16_t timer_500ms = 0U;
-
-    timer_10ms++;
-    timer_50ms++;
-    timer_500ms++;
-
-    if (timer_10ms >= 10U)   { timer_10ms = 0U;   g_flag_task_10ms = 1U; }
-    if (timer_50ms >= 50U) { timer_50ms = 0U;  g_flag_task_50ms = 1U; }
-    if (timer_500ms >= 500U) { timer_500ms = 0U;  g_flag_task_500ms = 1U; }
-}
-
-//#ifdef __cplusplus
-//}
-//#endif
+#line 46
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
