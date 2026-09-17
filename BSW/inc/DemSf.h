@@ -61,6 +61,7 @@ typedef struct {
  *            EXTERNAL GLOBAL VARIABLES
  *******************************************************/
 
+#define TOTAL_DTCS_MAX 12U
 extern DTC_StatusType g_dtc_table[];
 
 /*******************************************************

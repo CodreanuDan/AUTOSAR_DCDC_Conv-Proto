@@ -427,7 +427,7 @@ void Com_Send_ActiveDTC_Frames(void)
 	uint8_t p_2;
 
     uint8_t total_dtcs = Dem_GetTotalDtcs();
-    uint8_t active_indices[total_dtcs];
+    uint8_t active_indices[TOTAL_DTCS_MAX];
     uint8_t active_count = 0U;
 
     /* Filter active and passive faults from DEM table */

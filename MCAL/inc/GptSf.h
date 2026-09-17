@@ -34,6 +34,7 @@ extern volatile uint32_t g_tick_ms;
  * ===================================================================== */
 extern volatile uint8_t g_flag_task_10ms;
 extern volatile uint8_t g_flag_task_50ms;
+extern volatile uint8_t g_flag_task_100ms;
 extern volatile uint8_t g_flag_task_500ms;
 
 /************* END OF VARIABLE DECLARATIONS ************/

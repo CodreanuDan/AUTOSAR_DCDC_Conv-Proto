@@ -38,42 +38,11 @@ void peripheral_loop() {
 #include "ComSf.h"
 #include "DcmSf.h"
 #include "AdcSf.h"
+#include "GptSf.h"
 
 /* ASW Runnable APIs */
 #include "SWC_SensorMeasurement.h"
 #include "SWC_PidController.h"
-
-
-/* =====================================================================
- * OS SCHEDULER INFRASTRUCTURE
- * ===================================================================== */
-volatile uint8_t g_flag_task_10ms  = 0U;
-volatile uint8_t g_flag_task_50ms = 0U;
-volatile uint8_t g_flag_task_500ms = 0U;
-
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
-
-/* OS Timer Hook called from GPT driver interrupt tick every 1ms */
-void Os_TimerTick_Hook(void)
-{
-    static uint16_t timer_10ms = 0U;
-    static uint16_t timer_50ms = 0U;
-    static uint16_t timer_500ms = 0U;
-
-    timer_10ms++;
-    timer_50ms++;
-    timer_500ms++;
-
-    if (timer_10ms >= 10U)   { timer_10ms = 0U;   g_flag_task_10ms = 1U; }
-    if (timer_50ms >= 50U) { timer_50ms = 0U;  g_flag_task_50ms = 1U; }
-    if (timer_500ms >= 500U) { timer_500ms = 0U;  g_flag_task_500ms = 1U; }
-}
-
-//#ifdef __cplusplus
-//}
-//#endif
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -99,11 +68,9 @@ void App_Task_10ms(void)
     /* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
     IoHwAb_Actuator_MainFunction();
 
-    /* 5. TRIGGER: Trigger next ADC scan cycle*/
-    Adc_StartScan();
 }
 
-/* Task 100ms: UDS Parser & Cyclic Telemetry Transmission*/
+/* Task 50ms: UDS Parser & Cyclic Telemetry Transmission*/
 void App_Task_50ms(void)
 {
     /* 1. Rx (BSW): Parse incoming UDS diagnostic frames from tester */
@@ -111,6 +78,13 @@ void App_Task_50ms(void)
 
     /* 2. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
     Com_MainFunction_Tx();
+}
+
+/* Task 100ms: Adc_StartScan cycle*/
+void App_Task_100ms(void)
+{
+    /* TRIGGER: Trigger next ADC scan cycle*/
+    Adc_StartScan();
 }
 
 /* Task 500ms: Diagnostic Test Routines & DTC Memory Transmission */
@@ -147,6 +121,12 @@ int main(void)
         {
             g_flag_task_50ms = 0U;
             App_Task_50ms();
+        }
+
+        if (g_flag_task_50ms) 
+        {
+            g_flag_task_100ms = 0U;
+            App_Task_100ms();
         }
 
         if (g_flag_task_500ms) 

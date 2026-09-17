@@ -18,6 +18,7 @@ extern volatile uint32_t g_tick_ms = 0;
  * ===================================================================== */
 extern volatile uint8_t g_flag_task_10ms  = 0U;
 extern volatile uint8_t g_flag_task_50ms = 0U;
+extern volatile uint8_t g_flag_task_100ms = 0U;
 extern volatile uint8_t g_flag_task_500ms = 0U;
 
 /************* END OF VARIABLE DEFINITIONS *************/
@@ -80,14 +81,17 @@ static void Os_TimerTick_Hook(void)
 {
     static uint16_t timer_10ms = 0U;
     static uint16_t timer_50ms = 0U;
+    static uint16_t timer_100ms = 0U;
     static uint16_t timer_500ms = 0U;
 
     timer_10ms++;
     timer_50ms++;
+    timer_100ms++;
     timer_500ms++;
 
     if (timer_10ms >= 10U)   { timer_10ms = 0U;   g_flag_task_10ms = 1U; }
     if (timer_50ms >= 50U) { timer_50ms = 0U;  g_flag_task_50ms = 1U; }
+    if (timer_100ms >= 100U) { timer_100ms = 0U;  g_flag_task_1000ms = 1U; }
     if (timer_500ms >= 500U) { timer_500ms = 0U;  g_flag_task_500ms = 1U; }
 }
 

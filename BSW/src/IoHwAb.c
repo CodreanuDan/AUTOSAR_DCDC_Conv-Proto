@@ -9,6 +9,7 @@
 #include "PwmSf.h"
 #include "DioSf.h"
 #include "AdcSf.h"
+#include "DcmSf.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
