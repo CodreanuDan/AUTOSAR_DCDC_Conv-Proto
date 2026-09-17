@@ -69,7 +69,13 @@ static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = Pwm_ReadOcr1A
 static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);}
 
 /* DID 0x0101: PWM Target Frequency (MCAL Direct) */
-static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) { uint16_t freq = Pwm_ReadIcr1(); data_out[0] = (uint8_t)(freq & 0xFFU); data_out[1] = (uint8_t)((freq >> 8U) & 0xFFU);}
+static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) 
+{
+    uint16_t top = Pwm_ReadIcr1();
+    uint16_t freq = (uint16_t)(16000000UL / (8UL * (1UL + top)));
+    data_out[0] = (uint8_t)(freq & 0xFFU);
+    data_out[1] = (uint8_t)((freq >> 8U) & 0xFFU);
+}
 static void Dcm_Cb_Write_PwmFreq(const uint8_t *data_in) { uint16_t freq = (uint16_t)(((uint16_t)data_in[1] << 8U) | data_in[0]); Pwm_SetFrequency(freq); }
 
 /* DID 0x0102: Target Vout (ASW via RTE) */
