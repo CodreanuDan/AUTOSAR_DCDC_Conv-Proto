@@ -50,6 +50,7 @@ void peripheral_setup ();
 void peripheral_loop ();
 void App_Task_10ms (void );
 void App_Task_50ms (void );
+void App_Task_100ms (void );
 void App_Task_500ms (void );
 int main (void );
 #line 46
@@ -78,11 +79,9 @@ void App_Task_10ms(void)
     /* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
     IoHwAb_Actuator_MainFunction();
 
-    /* 5. TRIGGER: Trigger next ADC scan cycle*/
-    Adc_StartScan();
 }
 
-/* Task 100ms: UDS Parser & Cyclic Telemetry Transmission*/
+/* Task 50ms: UDS Parser & Cyclic Telemetry Transmission*/
 void App_Task_50ms(void)
 {
     /* 1. Rx (BSW): Parse incoming UDS diagnostic frames from tester */
@@ -90,6 +89,13 @@ void App_Task_50ms(void)
 
     /* 2. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
     Com_MainFunction_Tx();
+}
+
+/* Task 100ms: Adc_StartScan cycle*/
+void App_Task_100ms(void)
+{
+    /* TRIGGER: Trigger next ADC scan cycle*/
+    Adc_StartScan();
 }
 
 /* Task 500ms: Diagnostic Test Routines & DTC Memory Transmission */
@@ -126,6 +132,12 @@ int main(void)
         {
             g_flag_task_50ms = 0U;
             App_Task_50ms();
+        }
+
+        if (g_flag_task_100ms) 
+        {
+            g_flag_task_100ms = 0U;
+            App_Task_100ms();
         }
 
         if (g_flag_task_500ms) 

@@ -123,7 +123,7 @@ int main(void)
             App_Task_50ms();
         }
 
-        if (g_flag_task_50ms) 
+        if (g_flag_task_100ms) 
         {
             g_flag_task_100ms = 0U;
             App_Task_100ms();
