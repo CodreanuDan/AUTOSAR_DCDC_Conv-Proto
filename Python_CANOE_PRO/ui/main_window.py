@@ -843,7 +843,10 @@ class MainWindow(QtWidgets.QMainWindow):
             did_bytes = bytes.fromhex(adp['did'])
             if item["spin_single"] is not None:
                 val = item["spin_single"].value()
-                val_bytes = struct.pack('>B' if adp['type'] == "single_spin" and adp.get('max', 100) <= 1 else '>H', val)
+                # val_bytes = struct.pack('>B' if adp['type'] == "single_spin" and adp.get('max', 100) <= 1 else '>H', val) # to exclude vout setpoint from 2 byte encapsulation
+                size = adp.get('size', 2)
+                fmt = ('<B' if size == 1 else '<H')
+                val_bytes = struct.pack(fmt, val)
                 cmd = bytes([0x2E]) + did_bytes + val_bytes
             else:
                 cmd = bytes([0x2E]) + did_bytes + bytes([item["spin_a"].value(), item["spin_b"].value()])

@@ -66,8 +66,10 @@ typedef struct {
  * ===================================================================== */
 
 /* DID 0x0100: PWM Duty Cycle (MCAL Direct) */
-//static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = Pwm_ReadOcr1A(); data_out[1] = Pwm_ReadOcr1B();} /* READ Diag Service: RDID 0x22*/
-static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = (uint8_t)(((uint32_t)Pwm_ReadOcr1A()*100UL)/Pwm_ReadIcr1());} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { uint16_t top = Pwm_ReadIcr1();
+													 data_out[0] = (uint8_t)(((uint32_t)Pwm_ReadOcr1A()*100UL)/top);
+													 data_out[1] = (uint8_t)(((uint32_t)Pwm_ReadOcr1B()*100UL)/top);
+												   } /* READ Diag Service: RDID 0x22*/
 
 //static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
 static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Rte_Write_DutyA(data_in[0]); Rte_Write_DutyB(data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
@@ -377,12 +379,18 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
                 }
             }
 
-            /* Transmit UDS Positive Response (0x6E) echoing back confirmed DID */
-            uint8_t resp_payload[2];
-            resp_payload[0] = req_ptr[1];
-            resp_payload[1] = req_ptr[2];
+			/* Transmit UDS Positive Response (0x6E) echoing DID + value actually applied */
+			uint8_t resp_payload[8];
+			resp_payload[0] = req_ptr[1];
+			resp_payload[1] = req_ptr[2];
 
-            Dcm_SendPositiveResponse(UDS_SID_WRITE_DATA_BY_ID, resp_payload, 2U);
+			if (s_dcm_did_table[i].read_fnc != NULL)
+			{
+				s_dcm_did_table[i].read_fnc(&resp_payload[2]);
+			}
+
+			Dcm_SendPositiveResponse(UDS_SID_WRITE_DATA_BY_ID, resp_payload, s_dcm_did_table[i].data_size + 2U);
+
             did_found = true;
             break;
         }

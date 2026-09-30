@@ -265,6 +265,7 @@ DID_Table:
     max: 1000
     step: 50
     default: 100
+    size: 1
 
   - name: "VoutSet"
     did: "0102"
@@ -273,6 +274,7 @@ DID_Table:
     max: 60
     step: 1
     default: 12
+    size: 1
 
   - name: "PidCtDsbl"
     did: "0103"
@@ -280,6 +282,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "RlInCtrl"
     did: "0104"
@@ -287,6 +290,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "RlOutCtrl"
     did: "0105"
@@ -294,6 +298,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "CycDemUpdt"
     did: "0106"
@@ -301,6 +306,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "CycPidUpdt"
     did: "0107"
@@ -308,6 +314,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "CycPwmUpdt"
     did: "0108"
@@ -315,6 +322,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "CycActUpdt"
     did: "0109"
@@ -322,6 +330,7 @@ DID_Table:
     min: 0
     max: 1
     default: 1
+    size: 1
 
   - name: "CycCnvUpdt"
     did: "0110"
@@ -329,7 +338,8 @@ DID_Table:
     min: 0
     max: 1
     default: 1
-
+    size: 1
+    
 # 4. DTC Table (Diagnostic Trouble Codes) --> Fault Memory (0xA5-Diag Frame / SID 0x19)
 DTC_Table:
   "0x1A0100":

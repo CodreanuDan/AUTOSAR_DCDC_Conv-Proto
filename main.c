@@ -97,7 +97,7 @@ void App_Task_500ms(void)
     //SWC_RoutineCtrl_Runnable_500ms();
 
     /* 2. BSW: Transmit active confirmed DTC diagnostic frames */
-    Com_Send_ActiveDTC_Frames();
+    //Com_Send_ActiveDTC_Frames();
 }
 
 /* =====================================================================
