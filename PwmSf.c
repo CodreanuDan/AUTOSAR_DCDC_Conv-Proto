@@ -76,12 +76,24 @@ void Pwm_SetDutyCycle(uint8_t duty_a, uint8_t duty_b)
  */
 void Pwm_SetFrequency(uint16_t new_freq_hz)
 {
-    if (new_freq_hz > 0U)
-    {
-        /* Recalculate ICR1 TOP value for new frequency */
-        ICR1 = (uint16_t)(F_CPU / (8UL * new_freq_hz) - 1UL);
-    }
+	if (new_freq_hz > 0U) 
+	{
+		/* Any requested frequency below 16,000,000/(8×65536) ˜ 30.5Hz overflows the 16-bit TOP register again */
+		if (new_freq_hz < 31U) 
+		{ 
+			new_freq_hz = 31U; 
+		}
+
+		/* Recalculate ICR1 TOP value for new frequency */
+		ICR1 = (uint16_t)(F_CPU / (8UL * new_freq_hz) - 1UL);
+	}
+	else
+	{
+		/* Do nothing */
+	}
 }
+
+/* Interfaces with AVR Registers */
 
 uint16_t Pwm_ReadOcr1A(void)
 {

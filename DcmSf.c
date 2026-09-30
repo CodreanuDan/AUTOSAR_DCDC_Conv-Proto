@@ -11,6 +11,7 @@
 #include "DioSf.h"
 #include "Rte.h"
 #include "ComSf.h"
+#include "IoHwAb.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -65,44 +66,57 @@ typedef struct {
  * ===================================================================== */
 
 /* DID 0x0100: PWM Duty Cycle (MCAL Direct) */
-static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = Pwm_ReadOcr1A(); data_out[1] = Pwm_ReadOcr1B();}
-static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);}
+//static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = Pwm_ReadOcr1A(); data_out[1] = Pwm_ReadOcr1B();} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { data_out[0] = (uint8_t)(((uint32_t)Pwm_ReadOcr1A()*100UL)/Pwm_ReadIcr1());} /* READ Diag Service: RDID 0x22*/
+
+//static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
+static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Rte_Write_DutyA(data_in[0]); Rte_Write_DutyB(data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* DID 0x0101: PWM Target Frequency (MCAL Direct) */
-static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) { uint16_t freq = Pwm_ReadIcr1(); data_out[0] = (uint8_t)(freq & 0xFFU); data_out[1] = (uint8_t)((freq >> 8U) & 0xFFU);}
-static void Dcm_Cb_Write_PwmFreq(const uint8_t *data_in) { uint16_t freq = (uint16_t)(((uint16_t)data_in[1] << 8U) | data_in[0]); Pwm_SetFrequency(freq); }
+static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) { uint16_t freq = Pwm_ReadIcr1(); data_out[0] = (uint8_t)(freq & 0xFFU); data_out[1] = (uint8_t)((freq >> 8U) & 0xFFU);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_PwmFreq(const uint8_t *data_in) { uint16_t freq = (uint16_t)(((uint16_t)data_in[1] << 8U) | data_in[0]); Pwm_SetFrequency(freq); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* DID 0x0102: Target Vout (ASW via RTE) */
-static void Dcm_Cb_Read_TargetVout(uint8_t *data_out) { data_out[0] = Rte_Read_PidTargetSetpoint();}
-static void Dcm_Cb_Write_TargetVout(const uint8_t *data_in){ Rte_Write_PidTargetSetpoint(data_in[0]);}
+static void Dcm_Cb_Read_TargetVout(uint8_t *data_out) { data_out[0] = Rte_Read_PidTargetSetpoint();} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_TargetVout(const uint8_t *data_in){ Rte_Write_PidTargetSetpoint(data_in[0]);} /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* DID 0x0103: PID Disable Flag (ASW via RTE) */
-static void Dcm_Cb_Read_PidDisableFlag(uint8_t *data_out) { data_out[0] = (uint8_t)Rte_Read_PidDisableFlag(); }
-static void Dcm_Cb_Write_PidDisableFlag(const uint8_t *data_in) { Rte_Write_PidDisableFlag((bool)data_in[0]);}
+static void Dcm_Cb_Read_PidDisableFlag(uint8_t *data_out) { data_out[0] = (uint8_t)Rte_Read_PidDisableFlag(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_PidDisableFlag(const uint8_t *data_in) { Rte_Write_PidDisableFlag((bool)data_in[0]);} /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* DID 0x0104: Relay Input State (MCAL Direct) */
-static void Dcm_Cb_Read_RelayIn(uint8_t *data_out) { data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_IN);}
-static void Dcm_Cb_Write_RelayIn(const uint8_t *data_in){ IoHwAb_SetRelayInput(data_in[0]); }
+static void Dcm_Cb_Read_RelayIn(uint8_t *data_out) { data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_IN);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_RelayIn(const uint8_t *data_in){ IoHwAb_SetRelayInput(data_in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* DID 0x0105: Relay Output State (MCAL Direct) */
-static void Dcm_Cb_Read_RelayOut(uint8_t *data_out){ data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_OUT);}
-static void Dcm_Cb_Write_RelayOut(const uint8_t *data_in){ IoHwAb_SetRelayOutput(data_in[0]); }
+static void Dcm_Cb_Read_RelayOut(uint8_t *data_out){ data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_OUT);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_RelayOut(const uint8_t *data_in){ IoHwAb_SetRelayOutput(data_in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* Callbacks for Cyclic DIDs on ComSf */
-static void Dcm_Cb_Read_CycFault(uint8_t *out) { out[0] = Com_GetCyclicFaultUpdates(); }
-static void Dcm_Cb_Write_CycFault(const uint8_t *in) { Com_SetCyclicFaultUpdates(in[0]); }
+static void Dcm_Cb_Read_CycFault(uint8_t *out) { out[0] = Com_GetCyclicFaultUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycFault(const uint8_t *in) { Com_SetCyclicFaultUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
-static void Dcm_Cb_Read_CycPid(uint8_t *out) { out[0] = Com_GetCyclicPidUpdates(); }
-static void Dcm_Cb_Write_CycPid(const uint8_t *in) { Com_SetCyclicPidUpdates(in[0]); }
+static void Dcm_Cb_Read_CycPid(uint8_t *out) { out[0] = Com_GetCyclicPidUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycPid(const uint8_t *in) { Com_SetCyclicPidUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
-static void Dcm_Cb_Read_CycPwm(uint8_t *out) { out[0] = Com_GetCyclicPwmUpdates(); }
-static void Dcm_Cb_Write_CycPwm(const uint8_t *in) { Com_SetCyclicPwmUpdates(in[0]); }
+static void Dcm_Cb_Read_CycPwm(uint8_t *out) { out[0] = Com_GetCyclicPwmUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycPwm(const uint8_t *in) { Com_SetCyclicPwmUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
-static void Dcm_Cb_Read_CycAct(uint8_t *out) { out[0] = Com_GetCyclicActUpdates(); }
-static void Dcm_Cb_Write_CycAct(const uint8_t *in) { Com_SetCyclicActUpdates(in[0]); }
+static void Dcm_Cb_Read_CycAct(uint8_t *out) { out[0] = Com_GetCyclicActUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycAct(const uint8_t *in) { Com_SetCyclicActUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
-static void Dcm_Cb_Read_CycConv(uint8_t *out) { out[0] = Com_GetCyclicConvUpdates(); }
-static void Dcm_Cb_Write_CycConv(const uint8_t *in) { Com_SetCyclicConvUpdates(in[0]); }
+static void Dcm_Cb_Read_CycConv(uint8_t *out) { out[0] = Com_GetCyclicConvUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycConv(const uint8_t *in) { Com_SetCyclicConvUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
 
 /* =====================================================================
  * CENTRAL DID CONFIGURATION TABLE 

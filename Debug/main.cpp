@@ -79,6 +79,9 @@ void App_Task_10ms(void)
     /* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
     IoHwAb_Actuator_MainFunction();
 
+	/* 5. EcuM Main Function */
+	//EcuM_MainFunction(); Keep it for later it would shatter the other task functions for the moment...
+
 }
 
 /* Task 50ms: UDS Parser & Cyclic Telemetry Transmission*/

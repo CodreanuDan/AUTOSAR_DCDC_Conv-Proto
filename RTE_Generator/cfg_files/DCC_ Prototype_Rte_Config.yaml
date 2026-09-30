@@ -1,0 +1,147 @@
+# =====================================================================
+# AUTOSAR RTE SYSTEM ARCHITECTURE CONFIGURATION
+# Project: DCC_Prototype_Analyzer
+# =====================================================================
+
+project_name: "DC_DC_Analyzer_Pro"
+description: "RTE Data Elements and Global Variables Mapping"
+
+# Lista completă a semnalelor extrase din variabilele globale ale aplicației
+signals:
+  # --- PWM & Control Signals ---
+  - name: "DutyA"
+    type: "uint8_t"
+    unit: "%"
+    description: "Duty Cycle for PWM Channel A"
+    
+  - name: "DutyB"
+    type: "uint8_t"
+    unit: "%"
+    description: "Duty Cycle for PWM Channel B"
+    
+  - name: "TargetFrequency"
+    type: "uint16_t"
+    unit: "Hz"
+    description: "Target frequency for the PWM timer"
+
+  # --- ADC Raw Measurements ---
+  - name: "Physical_Iin"
+    type: "float32"
+    unit: "A"
+    description: "Input Current (Channel 0)"
+    
+  - name: "Physical_Vin"
+    type: "float32"
+    unit: "V"
+    description: "Input Voltage (Channel 1)"
+    
+  - name: "Physical_Iout"
+    type: "float32"
+    unit: "A"
+    description: "Output Current (Channel 2)"
+    
+  - name: "Physical_Vout"
+    type: "float32"
+    unit: "V"
+    description: "Output Voltage (Channel 3)"
+    
+  - name: "AdcScanDone"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Round-robin ADC scan completion status flag"
+
+  # --- PID Controller Parameters ---
+  - name: "PidTargetSetpoint"
+    type: "uint16_t"
+    unit: "V"
+    description: "Target setpoint for the PID control loop"
+    
+  - name: "PidDisableFlag"
+    type: "bool"
+    unit: "flag"
+    description: "Flag to disable or enable the PID controller"
+    
+  - name: "ConverterState"
+    type: "uint8_t"
+    unit: "state"
+    description: "Converter operating mode (0=PassThrough, 1=Boost, 2=Buck)"
+    
+  - name: "LastPidOutput"
+    type: "float"
+    unit: "%"
+    description: "Last computed output value from the PID controller"
+
+  # --- Actuators & Relays ---
+  - name: "RelayInputState"
+    type: "uint8_t"
+    unit: "status"
+    description: "Physical status of input relay (PD4)"
+    
+  - name: "RelayOutputState"
+    type: "uint8_t"
+    unit: "status"
+    description: "Physical status of output relay (PD5)"
+
+  # --- Diagnostic Routine Flags (Service 0x31) ---
+  - name: "RoutinePwmBoost"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for PWM Boost test routine"
+    
+  - name: "RoutinePwmBuck"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for PWM Buck test routine"
+    
+  - name: "RoutinePidBoost"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for PID Boost test routine"
+    
+  - name: "RoutinePidBuck"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for PID Buck test routine"
+    
+  - name: "RoutineInputRelay"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for Input Relay test routine"
+    
+  - name: "RoutineOutputRelay"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Active status for Output Relay test routine"
+
+  # --- Communication & Cyclic Transmission Control ---
+  - name: "CyclicConvUpdates"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Cyclic vs asynchronous toggle for ADC monitoring frames"
+    
+  - name: "CyclicFaultUpdates"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Cyclic update toggle for DTC fault memory frames"
+    
+  - name: "CyclicPwmUpdates"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Cyclic update toggle for PWM info frames"
+    
+  - name: "CyclicActUpdates"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Cyclic update toggle for actuator info frames"
+    
+  - name: "CyclicPidUpdates"
+    type: "uint8_t"
+    unit: "flag"
+    description: "Cyclic update toggle for PID info frames"
+
+  # --- System Timers ---
+  - name: "TickMs"
+    type: "uint32_t"
+    unit: "ms"
+    description: "System uptime tick in milliseconds from Timer 0"
+

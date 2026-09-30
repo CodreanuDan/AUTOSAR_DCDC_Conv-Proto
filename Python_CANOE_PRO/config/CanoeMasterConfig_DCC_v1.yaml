@@ -1,0 +1,371 @@
+####################################################################################
+#
+#     DC_DC_Analyzer_Pro CANoe Config file ---v1---
+#
+####################################################################################
+
+# --- General data ---
+Project_name: "DCDC_AnalyzerPro_DiagnosticDebug_Cfg1"
+COM_port: 4
+COM_baudrate: 57600
+
+# a. ADC HW constants for data conversion
+Hardware_constants:
+  adc_vref: 5.0
+  adc_max_count: 1023.0
+  vdiv_ratio: 0.0769
+  acs712_mv_per_a: 0.066
+  acs712_zero_v: 2.5
+
+# b. UDS Negative Response Codes - NRC Table
+UDS_NRC_dictionary:
+  "0x10": "General Reject"
+  "0x11": "Service Not Supported"
+  "0x12": "Sub-Function Not Supported"
+  "0x13": "Incorrect Message Length Or Invalid Format"
+  "0x22": "Conditions Not Correct"
+  "0x31": "Request Out Of Range"
+  "0x33": "Security Access Denied"
+  "0x78": "Response Pending"
+
+# c. Supported UDS Diagnostic Services (SIDs)
+Supported_Diagnostic_Services_Table:
+  "0x14": "ClearDiagnosticInformation"
+  "0x19": "ReadDTCInformation"
+  "0x22": "ReadDataByIdentifier"
+  "0x2E": "WriteDataByIdentifier"
+  "0x31": "RoutineControl"
+
+# 1. Diag frames definitions and mappings for the signals 
+Frame_Table:
+
+  - header_hex: "AA"
+    name: "BO_cnvData_1_"
+    color: "#00E5FF"
+    description: "ADC Raw Conversions & Measurements from input and output sensors"
+    length: 12
+    signals:
+      - name: "SG_cnvData_1_Iin_A_"
+        unit: "A"
+        color: "#1f77b4"
+        byte_offset: 1
+        size: 2
+        scaling: "raw_to_current"
+      - name: "SG_cnvData_1_Vin_V_"
+        unit: "V"
+        color: "#ff7f0e"
+        byte_offset: 3
+        size: 2
+        scaling: "raw_to_voltage"
+      - name: "SG_cnvData_1_Iout_A_"
+        unit: "A"
+        color: "#2ca02c"
+        byte_offset: 5
+        size: 2
+        scaling: "raw_to_current"
+      - name: "SG_cnvData_1_Vout_V_"
+        unit: "V"
+        color: "#d62728"
+        byte_offset: 7
+        size: 2
+        scaling: "raw_to_voltage"
+      - name: "SG_cnvData_1_AliveCt__"
+        unit: "Ct"
+        color: "#00bcd4"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+  
+  - header_hex: "A2"
+    name: "BO_pwmData_1_"
+    color: "#76FF03"
+    description: "PWM Channels & Frequency Status on DCC PWM Bridge"
+    length: 12
+    signals:
+      - name: "SG_pwmData_1_DutyA_p_"
+        unit: "%"
+        color: "#9467bd"
+        byte_offset: 1
+        size: 2
+        scaling: "pwm_duty_a"
+      - name: "SG_pwmData_1_DutyB_p_"
+        unit: "%"
+        color: "#8c564b"
+        byte_offset: 3
+        size: 2
+        scaling: "pwm_duty_b"
+      - name: "Bridge"
+        unit: "St"
+        color: "#bcbd22"
+        byte_offset: 5
+        size: 1
+        value_table:
+          0: "NORMAL"
+          1: "OVERSHOOT"
+          2: "UNDERSHOOT"
+        scaling: "direct"
+      - name: "SG_pwmData_1_Freq_Hz_"
+        unit: "Hz"
+        color: "#e377c2"
+        byte_offset: 6
+        size: 2
+        scaling: "direct"
+      - name: "SG_pwmData_1_AliveCt__"
+        unit: "Ct"
+        color: "#ffeb3b"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+  
+  - header_hex: "A3"
+    name: "BO_pidInfo_1_"
+    color: "#FFD600"
+    description: "PID Controller & Converter State"
+    length: 12
+    signals:
+      - name: "SG_pidInfo_1_Setpoint_V_"
+        unit: "V"
+        color: "#4ec9b0"
+        byte_offset: 1
+        size: 2
+        scaling: "direct"
+      - name: "SG_pidInfo_1_PIDOutput__"
+        unit: "%"
+        color: "#c586c0"
+        byte_offset: 3
+        size: 2
+        scaling: "pid_output_scale"
+      - name: "SG_pidInfo_1_ConvState__"
+        unit: "St"
+        color: "#dcdcaa"
+        byte_offset: 5
+        size: 1
+        value_table:
+          0: "PASS"
+          1: "BUCK"
+          2: "BOOST"
+        scaling: "direct"
+      - name: "SG_pidInfo_1_AliveCt__"
+        unit: "Ct"
+        color: "#4fc1ff"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+ 
+  - header_hex: "A4"
+    name: "BO_actInfo_1_"
+    color: "#FF9100"
+    description: "Relays and Actuators Status"
+    length: 12
+    signals:
+      - name: "SG_actInfo_1_RelInStat__"
+        unit: "0/1"
+        color: "#5c4ec9"
+        byte_offset: 1
+        size: 1
+        value_table:
+          0: "OFF"
+          1: "ON"
+        scaling: "direct"
+      - name: "SG_actInfo_1_RelOutStat__"
+        unit: "0/1"
+        color: "#de8912"
+        byte_offset: 2
+        size: 1
+        value_table:
+          0: "OFF"
+          1: "ON"
+        scaling: "direct"
+      - name: "SG_actInfo_1_AliveCt__"
+        unit: "Ct"
+        color: "#ff9800"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+  
+  - header_hex: "A5"
+    name: "BO_demInfo_1_"
+    color: "#E040FB"
+    description: "Diagnostic Fault Memory & DTC Status"
+    length: 12
+    signals:
+      - name: "SG_demInfo_1_DTC1_Code_"
+        unit: "Hex"
+        color: "#ff5555"
+        byte_offset: 1
+        size: 3
+        scaling: "dtc_code"
+      - name: "SG_demInfo_1_DTC1_Status_"
+        unit: "St"
+        color: "#ffaa00"
+        byte_offset: 4
+        size: 1
+        scaling: "direct"
+      - name: "SG_demInfo_1_DTC2_Code_"
+        unit: "Hex"
+        color: "#ff5555"
+        byte_offset: 5
+        size: 3
+        scaling: "dtc_code"
+      - name: "SG_demInfo_1_DTC2_Status_"
+        unit: "St"
+        color: "#ffaa00"
+        byte_offset: 8
+        size: 1
+        scaling: "direct"
+      - name: "SG_demInfo_1_AliveCt__"
+        unit: "Ct"
+        color: "#ff9800"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+
+# 2. UDS Available Routines
+Routine_Table:
+  - name: "BoostPWMTest"
+    rid: "0201"
+    start_cmd: "31 01 02 01"
+    stop_cmd: "31 02 02 01"
+  - name: "BuckPWMTest"
+    rid: "0202"
+    start_cmd: "31 01 02 02"
+    stop_cmd: "31 02 02 02"
+  - name: "BoostPIDTest"
+    rid: "0203"
+    start_cmd: "31 01 02 03"
+    stop_cmd: "31 02 02 03"
+  - name: "BuckPIDTest"
+    rid: "0204"
+    start_cmd: "31 01 02 04"
+    stop_cmd: "31 02 02 04"
+  - name: "RelayInputTest"
+    rid: "0205"
+    start_cmd: "31 01 02 05"
+    stop_cmd: "31 02 02 05"
+  - name: "RelayOutputTest"
+    rid: "0206"
+    start_cmd: "31 01 02 06"
+    stop_cmd: "31 02 02 06"
+
+# 3. Data Identifiers (DID)
+DID_Table:
+
+  - name: "PWMBrDutyAB"
+    did: "0100"
+    type: "dual_spin"
+    min: 0
+    max: 98
+    default_a: 50
+    default_b: 50
+
+  - name: "PWMFreqSet"
+    did: "0101"
+    type: "single_spin"
+    min: 100
+    max: 1000
+    step: 50
+    default: 100
+
+  - name: "VoutSet"
+    did: "0102"
+    type: "single_spin"
+    min: 0
+    max: 60
+    step: 1
+    default: 12
+
+  - name: "PidCtDsbl"
+    did: "0103"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "RlInCtrl"
+    did: "0104"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "RlOutCtrl"
+    did: "0105"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "CycDemUpdt"
+    did: "0106"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "CycPidUpdt"
+    did: "0107"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "CycPwmUpdt"
+    did: "0108"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "CycActUpdt"
+    did: "0109"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+  - name: "CycCnvUpdt"
+    did: "0110"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+
+# 4. DTC Table (Diagnostic Trouble Codes) --> Fault Memory (0xA5-Diag Frame / SID 0x19)
+DTC_Table:
+  "0x1A0100":
+    sae_code: "P1A00"
+    name: "Iin_SHORT_TO_VBAT"
+  "0x1A0101":
+    sae_code: "P1A01"
+    name: "Vin_SHORT_TO_VBAT"
+  "0x1A0102":
+    sae_code: "P1A02"
+    name: "Iout_SHORT_TO_VBAT"
+  "0x1A0103":
+    sae_code: "P1A03"
+    name: "Vout_SHORT_TO_VBAT"
+  "0x1A0110":
+    sae_code: "P1A10"
+    name: "Iin_SHORT_TO_GND"
+  "0x1A0111":
+    sae_code: "P1A11"
+    name: "Vin_SHORT_TO_GND"
+  "0x1A0112":
+    sae_code: "P1A12"
+    name: "Iout_SHORT_TO_GND"
+  "0x1A0113":
+    sae_code: "P1A13"
+    name: "Vout_SHORT_TO_GND"
+  "0x1A0120":
+    sae_code: "P1A20"
+    name: "Iin_OPEN_CIRCUIT"
+  "0x1A0121":
+    sae_code: "P1A21"
+    name: "Vin_OPEN_CIRCUIT"
+  "0x1A0122":
+    sae_code: "P1A22"
+    name: "Iout_OPEN_CIRCUIT"
+  "0x1A0123":
+    sae_code: "P1A23"
+    name: "Vout_OPEN_CIRCUIT"
+

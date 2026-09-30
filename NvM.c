@@ -63,13 +63,13 @@ void NvM_ReadAll(void)
     uint8_t vout  = eeprom_read_byte(NVM_ADDR_TARGET_VOUT);
     bool pid_dis  = (bool)eeprom_read_byte(NVM_ADDR_PID_DISABLE);
 
-	Rte_Write_TargetFrequency(freq);
-    Rte_Write_PidTargetSetpoint(vout);
-    Rte_Write_PidDisableFlag(pid_dis);
-
 	/* Sanity checks for blank EEPROM */
     if (freq == 0xFFFFU) { freq = 100U; }
     if (vout == 0xFFU)   { vout = 12U;  }
+
+	Rte_Write_TargetFrequency(freq);
+    Rte_Write_PidTargetSetpoint(vout);
+    Rte_Write_PidDisableFlag(pid_dis);
 
     /* Restore DTC fault statuses */
     uint8_t total_dtcs = Dem_GetTotalDtcs();

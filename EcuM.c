@@ -43,12 +43,12 @@ void EcuM_Init(void)
     /* 1. Initialize Microcontroller Ports */
     Port_Init();
 
-    /* 2. Initialize Non-Volatile Memory & Restore Persistent Configurations */
+    /* 2. Initialize Diagnostic Event Manager */
+    Dem_Init();
+
+    /* 3. Initialize Non-Volatile Memory & Restore Persistent Configurations */
     NvM_Init();
     NvM_ReadAll();
-
-    /* 3. Initialize Diagnostic Event Manager */
-    Dem_Init();
 
     /* 4. Initialize Communication and Diagnostic Modules */
     Uart_Init(DEFAULT_BAUD_RATE);
@@ -64,15 +64,6 @@ void EcuM_Init(void)
 
     /* 7. Enable Global Interrupts */
     sei();
-
-	/* TRIMITERE TEST DE CONEXIUNE */
-    Uart_TxByte('S');
-    Uart_TxByte('T');
-    Uart_TxByte('A');
-    Uart_TxByte('R');
-    Uart_TxByte('T');
-    Uart_TxByte('\n');
-
 
     /* 8. Transition to RUN state */
     s_ecum_state = ECUM_STATE_RUN;

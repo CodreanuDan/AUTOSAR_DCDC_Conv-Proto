@@ -183,7 +183,8 @@ void DemSf_MainFunction(void)
     {
         uint8_t error_detected = 0U;
         
-        if ((g_dtc_table[i].monitor_func != NULL) && (g_dtc_table[i].adc_source_ptr != NULL))
+        //if ((g_dtc_table[i].monitor_func != NULL) && (g_dtc_table[i].adc_source_ptr != NULL))
+		if (g_dtc_table[i].monitor_func != NULL)
         {
             error_detected = g_dtc_table[i].monitor_func((g_dtc_table[i].adc_source_ptr), g_dtc_table[i].error_mode);
         }
