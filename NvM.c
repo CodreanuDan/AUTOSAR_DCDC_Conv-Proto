@@ -44,7 +44,17 @@ void NvM_Init(void)
     if (magic != NVM_MAGIC_VALUE)
     {
         /* First boot or corrupted EEPROM: Write default baseline blocks */
-        NvM_WriteAll();
+        eeprom_update_word(NVM_ADDR_MAGIC, NVM_MAGIC_VALUE);
+        eeprom_update_word(NVM_ADDR_TARGET_FREQ, 100U);
+        eeprom_update_byte(NVM_ADDR_TARGET_VOUT, 12U);
+        eeprom_update_byte(NVM_ADDR_PID_DISABLE, 0U);
+
+        uint8_t total_dtcs = Dem_GetTotalDtcs();
+		uint8_t i;
+        for (i = 0U; i < total_dtcs; i++)
+        {
+            eeprom_update_byte(NVM_ADDR_DTC_STATUSES + i, DTC_STATUS_MISSING);
+        }
     }
 }
 

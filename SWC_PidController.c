@@ -132,7 +132,7 @@ void SWC_PidController_Runnable(float v_in, float v_out)
         else if (current_setpoint_volts > v_in)
         {
             duty_a = 98; 
-            float pid_output_boost = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, 0.01f);
+            float pid_output_boost = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, 0.025f);
             Rte_Write_LastPidOutput((uint8_t)pid_output_boost);
             float computed_duty_b = 98.0f - pid_output_boost;
             
@@ -145,7 +145,7 @@ void SWC_PidController_Runnable(float v_in, float v_out)
         else if (current_setpoint_volts < v_in)
         {
             duty_b = 98; 
-            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.01f);
+            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.025f);
             Rte_Write_LastPidOutput((uint8_t)pid_output_buck);
             float computed_duty_a = 98.0f - pid_output_buck;
             
