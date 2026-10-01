@@ -20,47 +20,47 @@ APP=mksketch
 CC=avr-gcc
 ASM=avr-gcc
 LD=avr-gcc
-#  C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/Debug.elf: TOOL=LD
+#  C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/Debug.elf: TOOL=LD
 #  Post: avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
 #  Post: avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Debug.elf" "./Debug.eep" || exit 0 
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/main.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/main.cpp: TOOL=APP
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/main.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/main.cpp: TOOL=APP
 #        Post: make -f arduino/Makefile all
-#           C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/main.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/AdcSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/AdcSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/ComSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/ComSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/DcmSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/DcmSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/DemSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/DemSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/DioSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/DioSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/EcuM.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/EcuM.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/GptSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/GptSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/IoHwAb.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/IoHwAb.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/NvM.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/NvM.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/PduR.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/PduR.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/PortSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/PortSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/PwmSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/PwmSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/Rte.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/Rte.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/SWC_PidController.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/SWC_PidController.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/SWC_SensorMeasurement.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/SWC_SensorMeasurement.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/UartSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/UartSf.c
-#     C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/ARDUINO UNO/Debug/WdgSf.o: TOOL=CC
-#        C:/Users/dan/AppData/Local/Temp/VSM Studio/d94c47a9abe549509cc6f7b72573dade/Arduino Uno/WdgSf.c
+#           C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/main.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/AdcSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/AdcSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/ComSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/ComSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/DcmSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/DcmSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/DemSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/DemSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/DioSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/DioSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/EcuM.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/EcuM.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/GptSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/GptSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/IoHwAb.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/IoHwAb.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/NvM.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/NvM.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/PduR.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/PduR.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/PortSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/PortSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/PwmSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/PwmSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/Rte.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/Rte.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/SWC_PidController.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/SWC_PidController.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/SWC_SensorMeasurement.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/SWC_SensorMeasurement.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/UartSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/UartSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/ARDUINO UNO/Debug/WdgSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/fcbed269e2d349368aede2ab56f192fb/Arduino Uno/WdgSf.c
 
 # Build tree:
 all:	Debug

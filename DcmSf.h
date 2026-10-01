@@ -32,11 +32,11 @@ extern "C" {
 #define UDS_SID_ROUTINE_CONTROL         0x31U
 
 /* Negative Response Codes (NRC) */
-#define UDS_NRC_SERVICE_NOT_SUPPORTED   0x11U
-#define UDS_NRC_SUB_FUNCTION_NOT_SUPP   0x12U
+#define UDS_NRC_SERVICE_NOT_SUPPORTED      0x11U
+#define UDS_NRC_SUB_FUNCTION_NOT_SUPP      0x12U
 #define UDS_NRC_INCORRECT_LENGTH_OR_FORMAT 0x13U
-#define UDS_NRC_CONDITIONS_NOT_CORRECT  0x22U
-#define UDS_NRC_REQUEST_OUT_OF_RANGE    0x31U
+#define UDS_NRC_CONDITIONS_NOT_CORRECT     0x22U
+#define UDS_NRC_REQUEST_OUT_OF_RANGE       0x31U
 
 /* Diagnostic Sessions (DSL - Diagnostic Session Layer) */
 typedef enum

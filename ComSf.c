@@ -34,7 +34,7 @@ static uint8_t s_cyclic_conv_updates  = 1U; /* DID 0x0110 CycCnvUpdt: Default en
 static uint8_t s_cyclic_pwm_updates   = 1U; /* DID 0x0108 CycPwmUpdt: Default enabled */
 static uint8_t s_cyclic_pid_updates   = 1U; /* DID 0x0107 CycPidUpdt: Default enabled */
 static uint8_t s_cyclic_act_updates   = 1U; /* DID 0x0109 CycActUpdt: Default enabled */
-static uint8_t s_cyclic_fault_updates = 1U; /* DID 0x0106 CycDemUpdt: Default enabled */
+static uint8_t s_cyclic_fault_updates = 0U; /* DID 0x0106 CycDemUpdt: Default disabled */
 
 
 /*******************************************************
@@ -154,35 +154,40 @@ void Com_MainFunction_Tx(void)
     timer_fault_ms += 10U;
 
     /* 1. Send ADC Monitoring Frame (0xAA) every 50ms if cyclic updates enabled via DID 0x0110 (downscaled x5 times to match new 50ms task: 50ms -> 10ms) */
-    if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 10U))
+    //if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 10U))
+    if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 20U))
     {
         timer_adc_ms = 0U;
         Com_Send_DiagFrame_ConvMonitorData();
     }
 
     /* 2. Send PWM Info Frame (0xA2) every 100ms if cyclic updates enabled via DID 0x0108 (downscaled x5 times to match new 50ms task: 100ms -> 20ms)*/
-    if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 20U))
+    //if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 20U))
+    if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 40U))
     {
         timer_pwm_ms = 0U;
         Com_Send_DiagFrame_PWMInfo();
     }
 
     /* 3. Send PID Info Frame (0xA3) every 100ms if cyclic updates enabled via DID 0x0107 (downscaled x5 times to match new 50ms task: 100ms -> 20ms)*/
-    if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 20U))
+    //if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 20U))
+    if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 40U))
     {
         timer_pid_ms = 0U;
         Com_Send_DiagFrame_PIDInfo();
     }
 
     /* 4. Send Actuator Status Frame (0xA4) every 200ms if cyclic updates enabled via DID 0x0109 (downscaled x5 times to match new 50ms task: 200ms -> 40ms) */
-    if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 40U))
+    //if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 40U))
+    if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 80U))
     {
         timer_act_ms = 0U;
         Com_Send_DiagFrame_ActuatorInfo();
     }
 
     /* 5. Send Active DTC Memory Frame (0xA5) every 500ms if cyclic updates enabled via DID 0x0106 (downscaled x5 times to match new 50ms task: 500ms -> 100ms)*/
-    if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 100U))
+    //if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 100U))
+    if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 200U))
     {
         timer_fault_ms = 0U;
         Com_Send_ActiveDTC_Frames();

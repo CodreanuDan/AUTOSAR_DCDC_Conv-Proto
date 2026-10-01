@@ -47,6 +47,16 @@ typedef void (*Dcm_DidUpdateNotificationFctPtr)(void);
 typedef void (*Dcm_DidReadFctPtr)(uint8_t *data_out);
 typedef void (*Dcm_DidWriteFctPtr)(const uint8_t *data_in);
 
+
+/**
+ * @brief Pointer type for condition-check function pointer type and field
+ */
+typedef uint8_t Dcm_NegativeResponseCodeType;
+#define DCM_E_OK 0x00U   /* condition check passed */
+typedef Dcm_NegativeResponseCodeType (*Dcm_ConditionCheckFncType)(void);
+
+
+
 /**
  * @brief Central Data Identifier Configuration Structure
  */
@@ -58,11 +68,12 @@ typedef struct {
 	Dcm_DidReadFctPtr  				read_fnc;       /* Callback for HW/RTE Read */
     Dcm_DidWriteFctPtr 				write_fnc;      /* Callback for HW/RTE Write */
 	void              				*p_static_data; /* Static buffer pointer for BSW-only internal DIDs */
+	Dcm_ConditionCheckFncType       cond_check_fnc; /* NULL if no guard needed */
 } Dcm_DidConfigType;
 
 
 /* =====================================================================
- * DID READ/WRITE CALLBACKS (MCAL & RTE MEDIATED)
+ * DID READ/WRITE/CONDITION CHECK CALLBACKS (MCAL & RTE MEDIATED)
  * ===================================================================== */
 
 /* DID 0x0100: PWM Duty Cycle (MCAL Direct) */
@@ -73,6 +84,7 @@ static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { uint16_t top = Pwm_ReadIcr1
 
 //static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
 static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Rte_Write_DutyA(data_in[0]); Rte_Write_DutyB(data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
+static Dcm_NegativeResponseCodeType Dcm_CondCheck_PwmDuty(void) {return (Rte_Read_PidDisableFlag() == true) ? DCM_E_OK : UDS_NRC_CONDITIONS_NOT_CORRECT;}
 /* ---------------------------------------- */
 
 /* DID 0x0101: PWM Target Frequency (MCAL Direct) */
@@ -124,21 +136,21 @@ static void Dcm_Cb_Write_CycConv(const uint8_t *in) { Com_SetCyclicConvUpdates(i
  * CENTRAL DID CONFIGURATION TABLE 
  * ===================================================================== */
 static const Dcm_DidConfigType s_dcm_did_table[] = {
-    /* DID     Size Type             Access          Read Callback                Write Callback               BSW Static Pointer */
+    /* DID     Size Type             Access          Read Callback                Write Callback               BSW Static Pointer  CondCheck */
     /* HW & ASW DIDs via Callbacks */
-    { 0x0100U, 2U,  DID_DATA_ARRAY,  DID_READ_WRITE, Dcm_Cb_Read_PwmDuty,         Dcm_Cb_Write_PwmDuty,        NULL },
-    { 0x0101U, 2U,  DID_DATA_UINT16, DID_READ_WRITE, Dcm_Cb_Read_PwmFreq,         Dcm_Cb_Write_PwmFreq,        NULL },
-    { 0x0102U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_TargetVout,      Dcm_Cb_Write_TargetVout,     NULL },
-    { 0x0103U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_PidDisableFlag,  Dcm_Cb_Write_PidDisableFlag, NULL },
-    { 0x0104U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayIn,         Dcm_Cb_Write_RelayIn,        NULL },
-    { 0x0105U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayOut,        Dcm_Cb_Write_RelayOut,       NULL },
+    { 0x0100U, 2U,  DID_DATA_ARRAY,  DID_READ_WRITE, Dcm_Cb_Read_PwmDuty,         Dcm_Cb_Write_PwmDuty,        NULL,  			   Dcm_CondCheck_PwmDuty},
+    { 0x0101U, 2U,  DID_DATA_UINT16, DID_READ_WRITE, Dcm_Cb_Read_PwmFreq,         Dcm_Cb_Write_PwmFreq,        NULL,  			   NULL},
+    { 0x0102U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_TargetVout,      Dcm_Cb_Write_TargetVout,     NULL,  			   NULL},
+    { 0x0103U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_PidDisableFlag,  Dcm_Cb_Write_PidDisableFlag, NULL,  			   NULL},
+    { 0x0104U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayIn,         Dcm_Cb_Write_RelayIn,        NULL,  			   NULL},
+    { 0x0105U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayOut,        Dcm_Cb_Write_RelayOut,       NULL,  			   NULL},
     
     /* BSW Internal Cyclic Config DIDs using Static Variables and Data Types */
-    { 0x0106U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycFault,        Dcm_Cb_Write_CycFault,       NULL },
-    { 0x0107U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPid,          Dcm_Cb_Write_CycPid,         NULL },
-    { 0x0108U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPwm,          Dcm_Cb_Write_CycPwm,         NULL },
-    { 0x0109U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycAct,          Dcm_Cb_Write_CycAct,         NULL },
-    { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL }
+    { 0x0106U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycFault,        Dcm_Cb_Write_CycFault,       NULL,  			   NULL},
+    { 0x0107U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPid,          Dcm_Cb_Write_CycPid,         NULL,  			   NULL},
+    { 0x0108U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPwm,          Dcm_Cb_Write_CycPwm,         NULL,  			   NULL},
+    { 0x0109U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycAct,          Dcm_Cb_Write_CycAct,         NULL,  			   NULL},
+    { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL,  			   NULL}
 };
 
 #define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))
@@ -355,6 +367,17 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
                 Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
                 return;
             }
+
+			/* Verify write pre-conditions for requested DID */
+			if (s_dcm_did_table[i].cond_check_fnc != NULL)
+			{
+				Dcm_NegativeResponseCodeType nrc = s_dcm_did_table[i].cond_check_fnc();
+				if (nrc != DCM_E_OK)
+				{
+					Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, nrc);
+					return;
+				}
+			}
 
             /* Priority 1: Execute live Write Callback (MCAL Hardware or RTE Port) */
             if (s_dcm_did_table[i].write_fnc != NULL)
