@@ -152,18 +152,9 @@ void IoHwAb_Sensor_MainFunction(void)
  */
 void IoHwAb_Actuator_MainFunction(void)
 {
-	bool s_PidDisableFlag = Rte_Read_PidDisableFlag();
-
-	if (s_PidDisableFlag == false)
-	{
-		uint8_t duty_a = Rte_Read_DutyA();
-		uint8_t duty_b = Rte_Read_DutyB();
-		Pwm_SetDutyCycle(duty_a, duty_b);
-	}
-	else if (s_PidDisableFlag == true)
-	{
-		/* Do nothing */
-	}
+	uint8_t duty_a = Rte_Read_DutyA();
+	uint8_t duty_b = Rte_Read_DutyB();
+	Pwm_SetDutyCycle(duty_a, duty_b);
 }
 
 /**
