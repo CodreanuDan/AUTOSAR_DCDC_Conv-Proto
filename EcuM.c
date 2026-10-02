@@ -57,10 +57,10 @@ void EcuM_Init(void)
     /* 5. Initialize Hardware Timers and Drivers */
     Adc_Init();
     Timer0_TickInit();
-    Timer1_Pwm_Init(100U); /* Default initial PWM frequency: 100Hz */
+    Timer1_Pwm_Init(Rte_Read_TargetFrequency()); /* Default initial PWM frequency: 100Hz */
 
     /* 6. Initialize Watchdog Timer (2 seconds timeout) */
-    //Wdg_Init(WDTO_2S);
+    Wdg_Init(WDTO_2S);
 
     /* 7. Enable Global Interrupts */
     sei();

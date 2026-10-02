@@ -21,7 +21,7 @@
 #define NVM_ADDR_PID_DISABLE   ((uint8_t*) 0x0005U)
 #define NVM_ADDR_DTC_STATUSES  ((uint8_t*) 0x0006U)
 
-#define NVM_MAGIC_VALUE        0xA55AU
+#define NVM_MAGIC_VALUE        0xA55BU
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -45,7 +45,7 @@ void NvM_Init(void)
     {
         /* First boot or corrupted EEPROM: Write default baseline blocks */
         eeprom_update_word(NVM_ADDR_MAGIC, NVM_MAGIC_VALUE);
-        eeprom_update_word(NVM_ADDR_TARGET_FREQ, 100U);
+        eeprom_update_word(NVM_ADDR_TARGET_FREQ, 250U);
         eeprom_update_byte(NVM_ADDR_TARGET_VOUT, 12U);
         eeprom_update_byte(NVM_ADDR_PID_DISABLE, 0U);
 

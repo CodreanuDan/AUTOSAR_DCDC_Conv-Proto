@@ -69,7 +69,7 @@ void App_Task_10ms(void)
     IoHwAb_Actuator_MainFunction();
 
 	/* 5. EcuM Main Function */
-	//EcuM_MainFunction(); Keep it for later it would shatter the other task functions for the moment...
+	EcuM_MainFunction(); 
 
 }
 

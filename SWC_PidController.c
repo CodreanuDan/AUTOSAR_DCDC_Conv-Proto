@@ -54,22 +54,29 @@ static float PidCtrl_PIDCompute(PID_Controller *pid, float setpoint, float feedb
     {
         error = 0.0f;
     }
+	
+	/* Compute Proportional term */
+	float p_term = pid->Kp * error;
 
-    /* Compute Proportional term */
-    float p_term = pid->Kp * error;
+	/* Compute Derivative term based on rate of error change */
+	float d_term = 0.0f;
+	if (dt > 0.0f)
+	{
+		d_term = pid->Kd * (error - pid->prev_error) / dt;
+	}
+	pid->prev_error = error;
 
-    /* Compute Integral term with anti-windup clamping limits */
-    pid->integrator += (pid->Ki * error * dt);
-    if (pid->integrator > pid->out_max) pid->integrator = pid->out_max;
-    if (pid->integrator < pid->out_min) pid->integrator = pid->out_min;
+	/* Compute Integral term with conditional-integration anti-windup:
+	 * only accumulate while the unclamped output isn't already saturated,
+	 * so the integrator can't wind up past what the actuator can use. */
+	float output_unclamped = p_term + pid->integrator + d_term;
+	bool saturated_high = (output_unclamped >= pid->out_max) && (error > 0.0f);
+	bool saturated_low  = (output_unclamped <= pid->out_min) && (error < 0.0f);
 
-    /* Compute Derivative term based on rate of error change */
-    float d_term = 0.0f;
-    if (dt > 0.0f) 
-    {
-        d_term = pid->Kd * (error - pid->prev_error) / dt;
-    }
-    pid->prev_error = error;
+	if (!saturated_high && !saturated_low)
+	{
+		pid->integrator += (pid->Ki * error * dt);
+	}
 
     /* Sum all terms and clamp total output within configured boundaries */
     float output = p_term + pid->integrator + d_term;
@@ -132,7 +139,7 @@ void SWC_PidController_Runnable(float v_in, float v_out)
         else if (current_setpoint_volts > v_in)
         {
             duty_a = 98; 
-            float pid_output_boost = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, 0.025f);
+            float pid_output_boost = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, 0.1f);
             Rte_Write_LastPidOutput((uint8_t)pid_output_boost);
             float computed_duty_b = 98.0f - pid_output_boost;
             
@@ -145,7 +152,7 @@ void SWC_PidController_Runnable(float v_in, float v_out)
         else if (current_setpoint_volts < v_in)
         {
             duty_b = 98; 
-            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.025f);
+            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.1f);
             Rte_Write_LastPidOutput((uint8_t)pid_output_buck);
             float computed_duty_a = 98.0f - pid_output_buck;
             
