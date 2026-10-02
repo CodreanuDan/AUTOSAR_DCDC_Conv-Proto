@@ -88,16 +88,16 @@ void EcuM_MainFunction(void)
             Wdg_Trigger();
 
             /* 2. Run Communication RX parsing task */
-            Com_MainFunction_Rx();
+            //Com_MainFunction_Rx();
 
             /* 3. Run Communication TX cyclic transmission task */
-            Com_MainFunction_Tx();
+            //Com_MainFunction_Tx();
 
             /* 4. Run Diagnostic Event Manager background task */
-            DemSf_MainFunction();
+            //DemSf_MainFunction();
 
             /* 5. Trigger ADC conversion scan sequence */
-            Adc_StartScan();
+            //Adc_StartScan();
 
             /* 6. Check if a software reset or shutdown was requested via DCM */
             if (s_ecum_reset_req != ECUM_RESET_NONE)
