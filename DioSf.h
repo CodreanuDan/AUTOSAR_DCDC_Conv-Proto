@@ -40,10 +40,12 @@ typedef uint8_t Dio_LevelType;
 #define DIO_PORT_D             1U
 
 /* Definitions for project specific DIO channels mapping port and pin */
-#define DIO_CHANNEL_PWM_OC1A   ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB1))
-#define DIO_CHANNEL_PWM_OC1B   ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB2))
-#define DIO_CHANNEL_RELAY_IN   ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD4))
-#define DIO_CHANNEL_RELAY_OUT  ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD5))
+#define DIO_CHANNEL_PWM_OC1A     ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB1))
+#define DIO_CHANNEL_PWM_OC1B     ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB2))
+#define DIO_CHANNEL_RELAY_IN     ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD4))
+#define DIO_CHANNEL_RELAY_OUT    ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD5))
+#define DIO_CHANNEL_KL15_IN      ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD2))
+#define DIO_CHANNEL_KL15_MIRROR  ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD3))
 
 /*******************************************************
  *             START OF FUNCTION PROTOTYPES
@@ -73,6 +75,16 @@ void Dio_WriteChannel(Dio_ChannelType ChannelId, Dio_LevelType Level);
  * @return: Dio_LevelType The new physical state of the pin after toggle.
  */
 Dio_LevelType Dio_FlipChannel(Dio_ChannelType ChannelId);
+
+/**
+ * Function name: Dio_Kl15_InterruptInit
+ * @brief Configures INT0 (PD2) to fire on any logical change, used solely to
+ * wake the MCU from SLEEP_MODE_PWR_DOWN on a KL15 edge. Does not enable
+ * global interrupts - caller must call sei() after full system init.
+ * @param: void
+ * @return: void
+ */
+void Dio_Kl15_InterruptInit(void);
 
 /************* END OF FUNCTION PROTOTYPES ************/
 

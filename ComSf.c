@@ -375,7 +375,7 @@ void Com_Send_DiagFrame_PIDInfo(void)
 
 /**
  * Function name: Com_Send_DiagFrame_ActuatorInfo
- * @brief Transmits digital relay status for input and output actuators (Header 0xA4).
+ * @brief Transmits digital relay status for input and output actuators (Header 0xA4) and KL15 status.
  * @param: void
  * @return: void
  */
@@ -397,9 +397,14 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
     checksum += relay_in;
     Uart_TxByte(relay_out); 
     checksum += relay_out;
+	
+	/* 3. KL15 Status */
+	uint8_t kl15_state = Rte_Read_Kl15State();
+	Uart_TxByte(kl15_state);
+	checksum += kl15_state;
 
-    /* 3. Padding (6 bytes) */
-    for (i = 0U; i < 6U; i++) 
+    /* 3. Padding (5 bytes) */
+    for (i = 0U; i < 5U; i++) 
     {
         Uart_TxByte(0x00U);
         checksum += 0x00U;

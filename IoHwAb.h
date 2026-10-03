@@ -121,6 +121,16 @@ void IoHwAb_SetRelayInput(uint8_t state);
  */
 void IoHwAb_SetRelayOutput(uint8_t state);
 
+/**
+ * Function name: IoHwAb_Kl15_MainFunction
+ * @brief Debounces the KL15 input line, drives the KL15 mirror output on a
+ * confirmed transition, publishes state to RTE, and requests the matching
+ * EcuM sleep/wake transition. Call cyclically every 50ms.
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Kl15_MainFunction(void);
+
 
 /************* END OF FUNCTION PROTOTYPES ************/
 

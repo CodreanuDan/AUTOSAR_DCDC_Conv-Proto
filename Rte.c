@@ -35,6 +35,7 @@ static uint8_t RTE_VAR_CyclicPwmUpdates = 0U;
 static uint8_t RTE_VAR_CyclicActUpdates = 0U;
 static uint8_t RTE_VAR_CyclicPidUpdates = 0U;
 static uint8_t RTE_VAR_TickMs = 0U;
+static uint8_t RTE_VAR_Kl15State = 0U;
 
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
@@ -297,4 +298,14 @@ void Rte_Write_TickMs(uint8_t val)
 uint8_t Rte_Read_TickMs(void) 
 {
     return RTE_VAR_TickMs;
+}
+
+void Rte_Write_Kl15State(uint8_t val) 
+{ 
+	RTE_VAR_Kl15State = val; 
+}
+
+uint8_t Rte_Read_Kl15State(void) 
+{ 
+	return RTE_VAR_Kl15State; 
 }

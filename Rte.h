@@ -73,5 +73,7 @@ void Rte_Write_CyclicPidUpdates(uint8_t val);
 uint8_t Rte_Read_CyclicPidUpdates(void);
 void Rte_Write_TickMs(uint8_t val);
 uint8_t Rte_Read_TickMs(void);
+void Rte_Write_Kl15State(uint8_t val);
+uint8_t Rte_Read_Kl15State(void);
 
 #endif /* RTE_H */

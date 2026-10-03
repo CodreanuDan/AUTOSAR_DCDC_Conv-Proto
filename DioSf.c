@@ -6,6 +6,7 @@
 
 /* Project specific libs */
 #include "DioSf.h"
+#include <avr/interrupt.h>
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -110,6 +111,20 @@ Dio_LevelType Dio_FlipChannel(Dio_ChannelType ChannelId)
     }
 
     return Dio_ReadChannel(ChannelId);
+}
+
+void Dio_Kl15_InterruptInit(void)
+{
+    /* ISC01:0 = 01 -> any logical change on INT0 generates an interrupt */
+    EICRA = (EICRA & ~((1U << ISC01) | (1U << ISC00))) | (1U << ISC00);
+    EIMSK |= (1U << INT0);
+}
+
+/* Body intentionally empty: this ISR exists only to wake the MCU from sleep.
+ * Once awake, the cyclic IoHwAb_Kl15_MainFunction() re-reads and debounces
+ * the pin properly - no state is handled here. */
+ISR(INT0_vect)
+{
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

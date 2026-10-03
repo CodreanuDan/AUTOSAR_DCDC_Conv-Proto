@@ -10,6 +10,7 @@
 #include "DioSf.h"
 #include "AdcSf.h"
 #include "DcmSf.h"
+#include "EcuM.h"   /* for EcuM_RequestSleep/EcuM_RequestWake */
 
 #include <stdbool.h>
 
@@ -21,6 +22,12 @@ static MovAvg_HandleType s_filt_iin;
 static MovAvg_HandleType s_filt_vin;
 static MovAvg_HandleType s_filt_iout;
 static MovAvg_HandleType s_filt_vout;
+
+#define KL15_DEBOUNCE_SAMPLES   3U   /* ~150ms at the 50ms task cadence */
+
+static bool s_kl15_confirmed_state = false;
+static bool s_kl15_last_raw        = false;
+static uint8_t s_kl15_stable_count = 0U;
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -177,6 +184,49 @@ void IoHwAb_SetRelayInput(uint8_t state)
 void IoHwAb_SetRelayOutput(uint8_t state)
 {
     Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, (state > 0U) ? STD_HIGH : STD_LOW);
+}
+
+/**
+ * Function name: IoHwAb_Kl15_MainFunction
+ * @brief Debounces the KL15 input line, drives the KL15 mirror output on a
+ * confirmed transition, publishes state to RTE, and requests the matching
+ * EcuM sleep/wake transition. Call cyclically every 50ms.
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Kl15_MainFunction(void)
+{
+    bool raw = (Dio_ReadChannel(DIO_CHANNEL_KL15_IN) == STD_HIGH);
+
+    if (raw == s_kl15_last_raw)
+    {
+        if (s_kl15_stable_count < KL15_DEBOUNCE_SAMPLES)
+        {
+            s_kl15_stable_count++;
+        }
+    }
+    else
+    {
+        s_kl15_last_raw = raw;
+        s_kl15_stable_count = 1U;
+    }
+
+    if ((s_kl15_stable_count >= KL15_DEBOUNCE_SAMPLES) && (raw != s_kl15_confirmed_state))
+    {
+        s_kl15_confirmed_state = raw;
+
+        Dio_WriteChannel(DIO_CHANNEL_KL15_MIRROR, raw ? STD_HIGH : STD_LOW);
+        Rte_Write_Kl15State((uint8_t)raw);
+
+        if (raw == true)
+        {
+            EcuM_RequestWake();
+        }
+        else
+        {
+            EcuM_RequestSleep();
+        }
+    }
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

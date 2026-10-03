@@ -6,6 +6,7 @@
 
 /* Core libs */
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 
 /* Project specific libs */
 #include "EcuM.h"
@@ -26,7 +27,9 @@
  *******************************************************/
 
 static EcuM_StateType s_ecum_state       = ECUM_STATE_STARTUP;
-static EcuM_ResetType  s_ecum_reset_req  = ECUM_RESET_NONE;
+static EcuM_ResetType s_ecum_reset_req   = ECUM_RESET_NONE;
+
+static bool s_ecum_sleep_req = false;
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -43,29 +46,32 @@ void EcuM_Init(void)
     /* 1. Initialize Microcontroller Ports */
     Port_Init();
 
-    /* 2. Initialize Diagnostic Event Manager */
+	/* KL15 Manager */
+	Dio_Kl15_InterruptInit();
+
+    /* 3. Initialize Diagnostic Event Manager */
     Dem_Init();
 
-    /* 3. Initialize Non-Volatile Memory & Restore Persistent Configurations */
+    /* 4. Initialize Non-Volatile Memory & Restore Persistent Configurations */
     NvM_Init();
     NvM_ReadAll();
 
-    /* 4. Initialize Communication and Diagnostic Modules */
+    /* 5. Initialize Communication and Diagnostic Modules */
     Uart_Init(DEFAULT_BAUD_RATE);
     Dcm_Init();
 
-    /* 5. Initialize Hardware Timers and Drivers */
+    /* 6. Initialize Hardware Timers and Drivers */
     Adc_Init();
     Timer0_TickInit();
     Timer1_Pwm_Init(Rte_Read_TargetFrequency()); /* Default initial PWM frequency: 100Hz */
 
-    /* 6. Initialize Watchdog Timer (2 seconds timeout) */
+    /* 7. Initialize Watchdog Timer (2 seconds timeout) */
     Wdg_Init(WDTO_2S);
 
-    /* 7. Enable Global Interrupts */
+    /* 8. Enable Global Interrupts */
     sei();
 
-    /* 8. Transition to RUN state */
+    /* 9. Transition to RUN state */
     s_ecum_state = ECUM_STATE_RUN;
 }
 
@@ -92,6 +98,10 @@ void EcuM_MainFunction(void)
             {
                 s_ecum_state = ECUM_STATE_SHUTDOWN;
             }
+			else if (s_ecum_sleep_req == true)
+			{
+				s_ecum_state = ECUM_STATE_SHUTDOWN;
+			}
             break;
 
         case ECUM_STATE_SHUTDOWN:
@@ -108,11 +118,25 @@ void EcuM_MainFunction(void)
             {
                 Wdg_PerformReset();
             }
-            break;
+
+			else if (s_ecum_sleep_req == true)
+			{
+				s_ecum_sleep_req = false;
+				s_ecum_state = ECUM_STATE_SLEEP;
+			}
 
         case ECUM_STATE_SLEEP:
-            /* Low power suspend mode placeholder */
-            break;
+			wdt_disable();   /* don't let the watchdog fire while we're asleep */
+
+			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+			sleep_enable();
+			sleep_cpu();        /* halts here until INT0 (KL15 edge) wakes it */
+			sleep_disable();
+
+			Wdg_Init(WDTO_2S);  /* re-arm watchdog immediately on wake */
+
+			s_ecum_state = ECUM_STATE_RUN;
+			break;
 
         default:
             s_ecum_state = ECUM_STATE_RUN;
@@ -143,6 +167,19 @@ void EcuM_SetResetRequest(EcuM_ResetType reset_type)
 EcuM_StateType EcuM_GetState(void)
 {
     return s_ecum_state;
+}
+
+void EcuM_RequestSleep(void)
+{
+    if (s_ecum_state == ECUM_STATE_RUN)
+    {
+        s_ecum_sleep_req = true;
+    }
+}
+
+void EcuM_RequestWake(void)
+{
+    s_ecum_sleep_req = false;   /* cancels a pending sleep if KL15 flickers back ON in time */
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

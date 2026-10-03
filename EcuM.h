@@ -78,6 +78,9 @@ void EcuM_SetResetRequest(EcuM_ResetType reset_type);
  */
 EcuM_StateType EcuM_GetState(void);
 
+void EcuM_RequestSleep(void);
+void EcuM_RequestWake(void);
+
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus

@@ -81,6 +81,9 @@ void App_Task_50ms(void)
 
     /* 2. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
     Com_MainFunction_Tx();
+
+	/* 3. Monitor KL15 status */
+	IoHwAb_Kl15_MainFunction();
 }
 
 /* Task 100ms: Adc_StartScan cycle*/

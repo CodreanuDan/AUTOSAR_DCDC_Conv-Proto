@@ -32,6 +32,10 @@ extern "C" {
 #define PORT_PIN_RELAY_IN   PD4
 #define PORT_PIN_RELAY_OUT  PD5
 
+/* KL15 Input/Mirror Pins (PORTD) */
+#define PORT_PIN_KL15_IN       PD2   /* INT0 - requires external 10k pull-down to GND */
+#define PORT_PIN_KL15_MIRROR   PD3
+
 /*******************************************************
  *            START OF VARIABLE DECLARATIONS
  *******************************************************/
