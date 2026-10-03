@@ -37,7 +37,8 @@ typedef enum {
  */
 typedef enum {
     DID_READ_ONLY,
-    DID_READ_WRITE
+    DID_READ_WRITE,
+	DID_WRITE_ONLY,
 } Dcm_DidAccessType;
 
 /**
@@ -132,6 +133,10 @@ static void Dcm_Cb_Write_CycAct(const uint8_t *in) { Com_SetCyclicActUpdates(in[
 
 static void Dcm_Cb_Read_CycConv(uint8_t *out) { out[0] = Com_GetCyclicConvUpdates(); } /* READ Diag Service: RDID 0x22*/
 static void Dcm_Cb_Write_CycConv(const uint8_t *in) { Com_SetCyclicConvUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Write_Kl15Override(const uint8_t *data_in) { IoHwAb_Kl15_ForceState(data_in[0] != 0U); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
 
 /* =====================================================================
  * CENTRAL DID CONFIGURATION TABLE 
@@ -151,7 +156,8 @@ static const Dcm_DidConfigType s_dcm_did_table[] = {
     { 0x0107U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPid,          Dcm_Cb_Write_CycPid,         NULL,  			   NULL},
     { 0x0108U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPwm,          Dcm_Cb_Write_CycPwm,         NULL,  			   NULL},
     { 0x0109U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycAct,          Dcm_Cb_Write_CycAct,         NULL,  			   NULL},
-    { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL,  			   NULL}
+    { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL,  			   NULL},
+	{ 0x010AU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                        Dcm_Cb_Write_Kl15Override,   NULL,               NULL}
 };
 
 #define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))

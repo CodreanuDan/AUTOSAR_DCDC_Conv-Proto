@@ -187,6 +187,33 @@ void IoHwAb_SetRelayOutput(uint8_t state)
 }
 
 /**
+ * Function name: IoHwAb_Kl15_ForceState
+ * @brief Diagnostic override: forces a confirmed KL15 transition exactly as
+ * the debounced input path would, and resyncs internal debounce state so
+ * the real pin doesn't immediately fight the override on its next cycle.
+ * @param: bool state (true = ON/wake, false = OFF/sleep)
+ * @return: void
+ */
+void IoHwAb_Kl15_ForceState(bool state)
+{
+    s_kl15_confirmed_state = state;
+    s_kl15_last_raw        = state;
+    s_kl15_stable_count    = KL15_DEBOUNCE_SAMPLES;
+
+    Dio_WriteChannel(DIO_CHANNEL_KL15_MIRROR, state ? STD_HIGH : STD_LOW);
+    Rte_Write_Kl15State((uint8_t)state);
+
+    if (state == true)
+    {
+        EcuM_RequestWake();
+    }
+    else
+    {
+        EcuM_RequestSleep();
+    }
+}
+
+/**
  * Function name: IoHwAb_Kl15_MainFunction
  * @brief Debounces the KL15 input line, drives the KL15 mirror output on a
  * confirmed transition, publishes state to RTE, and requests the matching

@@ -72,8 +72,7 @@ void EcuM_Init(void)
     sei();
 
     /* 9. Transition to RUN state */
-    //s_ecum_state = ECUM_STATE_RUN;
-	s_ecum_state = ECUM_STATE_SLEEP;
+    s_ecum_state = ECUM_STATE_RUN;
 }
 
 /**

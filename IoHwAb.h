@@ -8,6 +8,7 @@
 #define IOHWAB_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "StdTypes.h"
 
 #ifdef __cplusplus
@@ -120,6 +121,16 @@ void IoHwAb_SetRelayInput(uint8_t state);
  * @return: void
  */
 void IoHwAb_SetRelayOutput(uint8_t state);
+
+/**
+ * Function name: IoHwAb_Kl15_ForceState
+ * @brief Diagnostic override: forces a confirmed KL15 transition exactly as
+ * the debounced input path would, and resyncs internal debounce state so
+ * the real pin doesn't immediately fight the override on its next cycle.
+ * @param: bool state (true = ON/wake, false = OFF/sleep)
+ * @return: void
+ */
+void IoHwAb_Kl15_ForceState(bool state);
 
 /**
  * Function name: IoHwAb_Kl15_MainFunction
