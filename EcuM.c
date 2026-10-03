@@ -148,7 +148,9 @@ void EcuM_MainFunction(void)
 
 			else if (s_ecum_sleep_req == true)
 			{
+			#if (ECUM_USE_REAL_SLEEP == 1)
 				s_ecum_sleep_req = false;
+			#endif
 				s_ecum_state = ECUM_STATE_SLEEP;
 			}
 			break;
