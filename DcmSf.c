@@ -369,7 +369,10 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
         if (s_dcm_did_table[i].did == requested_did)
         {
             /* Verify write permissions for requested DID */
-            if (s_dcm_did_table[i].access_type != DID_READ_WRITE)
+            if (
+				(s_dcm_did_table[i].access_type != DID_READ_WRITE) &&
+				(s_dcm_did_table[i].access_type != DID_WRITE_ONLY)
+			   )
             {
                 Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
                 return;
