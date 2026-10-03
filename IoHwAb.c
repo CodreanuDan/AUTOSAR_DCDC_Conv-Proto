@@ -256,4 +256,24 @@ void IoHwAb_Kl15_MainFunction(void)
     }
 }
 
+/**
+ * Function name: IoHwAb_Kl15_Init
+ * @brief Takes an initial KL15 reading at boot and primes the debounce state
+ * to match it, so the 50ms debounce task doesn't treat the first real sample
+ * as a fresh transition. Call once from EcuM_Init(), after Port_Init().
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Kl15_Init(void)
+{
+    bool raw = (Dio_ReadChannel(DIO_CHANNEL_KL15_IN) == STD_HIGH);
+
+    s_kl15_last_raw        = raw;
+    s_kl15_confirmed_state = raw;
+    s_kl15_stable_count    = KL15_DEBOUNCE_SAMPLES;
+
+    Dio_WriteChannel(DIO_CHANNEL_KL15_MIRROR, raw ? STD_HIGH : STD_LOW);
+    Rte_Write_Kl15State((uint8_t)raw);
+}
+
 /************* END OF FUNCTION DEFINITIONS ************/

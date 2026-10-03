@@ -142,6 +142,16 @@ void IoHwAb_Kl15_ForceState(bool state);
  */
 void IoHwAb_Kl15_MainFunction(void);
 
+/**
+ * Function name: IoHwAb_Kl15_Init
+ * @brief Takes an initial KL15 reading at boot and primes the debounce state
+ * to match it, so the 50ms debounce task doesn't treat the first real sample
+ * as a fresh transition. Call once from EcuM_Init(), after Port_Init().
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Kl15_Init(void);
+
 
 /************* END OF FUNCTION PROTOTYPES ************/
 

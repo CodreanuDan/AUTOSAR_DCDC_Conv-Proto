@@ -59,8 +59,10 @@ void EcuM_Init(void)
     /* 1. Initialize Microcontroller Ports */
     Port_Init();
 
-	/* KL15 Manager */
+	/* 2. KL15 Manager */
 	Dio_Kl15_InterruptInit();
+	IoHwAb_Kl15_Init();
+	bool kl15_initial = (Dio_ReadChannel(DIO_CHANNEL_KL15_IN) == STD_HIGH);
 
     /* 3. Initialize Diagnostic Event Manager */
     Dem_Init();
@@ -85,7 +87,16 @@ void EcuM_Init(void)
     sei();
 
     /* 9. Transition to RUN state */
-    s_ecum_state = ECUM_STATE_RUN;
+    //s_ecum_state = ECUM_STATE_RUN;
+	if (kl15_initial == true)
+	{
+		s_ecum_state = ECUM_STATE_RUN;
+	}
+	else
+	{
+		s_ecum_sleep_req = true;              /* primes it directly - EcuM_RequestSleep()'s RUN-only guard would otherwise block this before RUN is ever entered */
+		s_ecum_state = ECUM_STATE_SHUTDOWN;   /* skip RUN and the 10s grace entirely - nothing active yet to gracefully wind down from */
+	}
 }
 
 /**
