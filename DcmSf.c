@@ -12,6 +12,7 @@
 #include "Rte.h"
 #include "ComSf.h"
 #include "IoHwAb.h"
+#include "EcuM.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -244,7 +245,7 @@ static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr)
         Dcm_SendPositiveResponse(UDS_SID_ECU_RESET, &reset_type, 1U);
 
         /* Set flag or notify EcuM to transition into SHUTDOWN/RESET state */
-        /* (EcuM will invoke NvM_WriteAll and Wdg_PerformReset) */
+        EcuM_SetResetRequest(ECUM_RESET_SOFT);
     }
     else
     {

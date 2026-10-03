@@ -87,19 +87,7 @@ void EcuM_MainFunction(void)
             /* 1. Service the Watchdog timer periodically */
             Wdg_Trigger();
 
-            /* 2. Run Communication RX parsing task */
-            //Com_MainFunction_Rx();
-
-            /* 3. Run Communication TX cyclic transmission task */
-            //Com_MainFunction_Tx();
-
-            /* 4. Run Diagnostic Event Manager background task */
-            //DemSf_MainFunction();
-
-            /* 5. Trigger ADC conversion scan sequence */
-            //Adc_StartScan();
-
-            /* 6. Check if a software reset or shutdown was requested via DCM */
+            /* 2. Check if a software reset or shutdown was requested via DCM */
             if (s_ecum_reset_req != ECUM_RESET_NONE)
             {
                 s_ecum_state = ECUM_STATE_SHUTDOWN;
@@ -113,7 +101,7 @@ void EcuM_MainFunction(void)
             Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, STD_LOW);
 
             /* 2. Save all persistent calibrations and fault memories to EEPROM via NvM */
-            //NvM_WriteAll();
+            NvM_WriteAll();
 
             /* 3. Perform hardware reset if requested via UDS 0x11 */
             if (s_ecum_reset_req == ECUM_RESET_SOFT)
@@ -140,7 +128,10 @@ void EcuM_MainFunction(void)
  */
 void EcuM_SetResetRequest(EcuM_ResetType reset_type)
 {
-    s_ecum_reset_req = reset_type;
+    if (s_ecum_state == ECUM_STATE_RUN)
+    {
+        s_ecum_reset_req = reset_type;
+    }
 }
 
 /**
