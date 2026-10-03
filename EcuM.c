@@ -22,6 +22,7 @@
 #include "ComSf.h"
 #include "DcmSf.h"
 #include "Rte.h"
+#include "IoHwAb.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -114,6 +115,13 @@ void EcuM_Init(void)
  */
 void EcuM_MainFunction(void)
 {
+	/* Service it every call, regardless of state - the mock
+	 * sleep path keeps the CPU fully running throughout, so
+     * there's no reason to stop feeding it outside RUN */
+	#if (ECUM_USE_REAL_SLEEP == 1)
+		Wdg_Trigger();
+	#endif
+
     switch (s_ecum_state)
     {
         case ECUM_STATE_STARTUP:
@@ -122,8 +130,9 @@ void EcuM_MainFunction(void)
 
         case ECUM_STATE_RUN:
             /* 1. Service the Watchdog timer periodically */
-            Wdg_Trigger();
-
+			#if (ECUM_USE_REAL_SLEEP == 0)
+				Wdg_Trigger();
+			#endif
             /* 2. Check if a software reset or shutdown was requested via DCM */
             if (s_ecum_reset_req != ECUM_RESET_NONE)
             {
@@ -187,6 +196,7 @@ void EcuM_MainFunction(void)
 			/* Mock sleep: stay here, fully responsive, until EcuM_RequestWake()
 			 * clears the pending-sleep flag - via the real KL15 pin or the 0x010A
 			 * diagnostic override, both already call it. */
+			wdt_disable();
 			if (s_ecum_sleep_req == false)
 			{
 				s_ecum_state = ECUM_STATE_RUN;
