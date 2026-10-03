@@ -87,15 +87,22 @@ void EcuM_Init(void)
     sei();
 
     /* 9. Transition to RUN state */
-    //s_ecum_state = ECUM_STATE_RUN;
 	if (kl15_initial == true)
 	{
 		s_ecum_state = ECUM_STATE_RUN;
 	}
 	else
 	{
+		/* KL15 already off at cold boot - nothing was ever actively running
+		 * or transmitting, so there's nothing to gracefully wind down via
+		 * the TX linger (that's only meaningful coming out of RUN). Park
+		 * directly and go straight to sleep. */
+		Pwm_SetDutyCycle(0U, 0U);
+		Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, STD_LOW);
+		Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, STD_LOW);
+		s_ecum_state = ECUM_STATE_SLEEP;
 		s_ecum_sleep_req = true;              /* primes it directly - EcuM_RequestSleep()'s RUN-only guard would otherwise block this before RUN is ever entered */
-		s_ecum_state = ECUM_STATE_SHUTDOWN;   /* skip RUN and the 10s grace entirely - nothing active yet to gracefully wind down from */
+
 	}
 }
 
