@@ -96,7 +96,8 @@ void App_Task_50ms(void)
     /* 2. Rx (BSW): Parse incoming UDS diagnostic frames from tester */
     Com_MainFunction_Rx();
 
-	if (EcuM_GetState() != ECUM_STATE_SLEEP)
+	EcuM_StateType st = EcuM_GetState();
+    if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
 	{
 		/* 3. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
 		Com_MainFunction_Tx();

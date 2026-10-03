@@ -42,7 +42,7 @@ static EcuM_ResetType s_ecum_reset_req   = ECUM_RESET_NONE;
 static bool s_ecum_sleep_req = false;
 
 #define ECUM_SLEEP_GRACE_MS   10000UL
-static uint32_t s_ecum_sleep_req_tick = 0UL;
+static uint32_t s_ecum_linger_start_tick = 0UL;
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -124,10 +124,7 @@ void EcuM_MainFunction(void)
             }
 			else if (s_ecum_sleep_req == true)
 			{
-				if ((g_tick_ms - s_ecum_sleep_req_tick) >= ECUM_SLEEP_GRACE_MS)
-				{
-					s_ecum_state = ECUM_STATE_SHUTDOWN;
-				}
+				s_ecum_state = ECUM_STATE_SHUTDOWN;
 			}
             break;
 
@@ -151,6 +148,18 @@ void EcuM_MainFunction(void)
 			#if (ECUM_USE_REAL_SLEEP == 1)
 				s_ecum_sleep_req = false;
 			#endif
+				s_ecum_state = ECUM_STATE_TX_LINGER;        
+			}
+			break;
+
+		case ECUM_STATE_TX_LINGER:
+			if (s_ecum_sleep_req == false)
+			{
+				s_ecum_state = ECUM_STATE_RUN;   /* KL15 came back during the window - cancel, resume normally */
+			}
+			else if ((g_tick_ms - s_ecum_linger_start_tick) >= ECUM_SLEEP_GRACE_MS)
+			{
+				s_ecum_sleep_req = false;
 				s_ecum_state = ECUM_STATE_SLEEP;
 			}
 			break;
@@ -214,7 +223,7 @@ void EcuM_RequestSleep(void)
     if ((s_ecum_state == ECUM_STATE_RUN) && (s_ecum_sleep_req == false))
     {
         s_ecum_sleep_req = true;
-		s_ecum_sleep_req_tick = g_tick_ms;
+		s_ecum_linger_start_tick = g_tick_ms;
     }
 }
 
