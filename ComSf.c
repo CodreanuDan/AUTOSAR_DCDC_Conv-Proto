@@ -402,15 +402,20 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
 	uint8_t kl15_state = Rte_Read_Kl15State();
 	Uart_TxByte(kl15_state);
 	checksum += kl15_state;
+	
+	/* 4. KL15 Mirror Pin Status */
+	uint8_t kl15_mirror_pin = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_KL15_MIRROR);
+	Uart_TxByte(kl15_mirror_pin);
+	checksum += kl15_mirror_pin;
 
-    /* 3. Padding (5 bytes) */
-    for (i = 0U; i < 5U; i++) 
+    /* 5. Padding (4 bytes) */
+    for (i = 0U; i < 4U; i++) 
     {
         Uart_TxByte(0x00U);
         checksum += 0x00U;
     }
     
-    /* 4. Alive Counter, Checksum, and Terminator */
+    /* 6. Alive Counter, Checksum, and Terminator */
     Uart_TxByte(s_alive_counter_DiagFrame_Act); 
     checksum += s_alive_counter_DiagFrame_Act;
     

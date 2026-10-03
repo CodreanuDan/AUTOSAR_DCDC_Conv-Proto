@@ -421,6 +421,10 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
 			{
 				s_dcm_did_table[i].read_fnc(&resp_payload[2]);
 			}
+			else
+			{
+				resp_payload[2] = 0U;
+			}
 
 			Dcm_SendPositiveResponse(UDS_SID_WRITE_DATA_BY_ID, resp_payload, s_dcm_did_table[i].data_size + 2U);
 
