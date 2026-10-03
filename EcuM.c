@@ -72,7 +72,8 @@ void EcuM_Init(void)
     sei();
 
     /* 9. Transition to RUN state */
-    s_ecum_state = ECUM_STATE_RUN;
+    //s_ecum_state = ECUM_STATE_RUN;
+	s_ecum_state = ECUM_STATE_SLEEP;
 }
 
 /**
@@ -124,6 +125,7 @@ void EcuM_MainFunction(void)
 				s_ecum_sleep_req = false;
 				s_ecum_state = ECUM_STATE_SLEEP;
 			}
+			break;
 
         case ECUM_STATE_SLEEP:
 			wdt_disable();   /* don't let the watchdog fire while we're asleep */
