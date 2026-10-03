@@ -113,18 +113,30 @@ Dio_LevelType Dio_FlipChannel(Dio_ChannelType ChannelId)
     return Dio_ReadChannel(ChannelId);
 }
 
+/**
+ * Function name: Dio_Kl15_InterruptInit
+ * @brief Configures INT0 (PD2) to fire on any logical change, used solely to
+ * wake the MCU from SLEEP_MODE_PWR_DOWN on a KL15 edge. Does not enable
+ * global interrupts - caller must call sei() after full system init.
+ * @param: void
+ * @return: void
+ */
 void Dio_Kl15_InterruptInit(void)
 {
-    /* ISC01:0 = 01 -> any logical change on INT0 generates an interrupt */
-    EICRA = (EICRA & ~((1U << ISC01) | (1U << ISC00))) | (1U << ISC00);
-    EIMSK |= (1U << INT0);
+    /* Switched from INT0 to Pin Change Interrupt: INT0's edge/"any change"
+     * modes require a running I/O clock to detect the transition and do NOT
+     * wake the MCU from SLEEP_MODE_PWR_DOWN. Pin change interrupts are
+     * detected asynchronously and do reliably wake from Power-down. */
+    PCICR  |= (1U << PCIE2);
+    PCMSK2 |= (1U << PCINT18);   /* PD2 */
 }
 
 /* Body intentionally empty: this ISR exists only to wake the MCU from sleep.
  * Once awake, the cyclic IoHwAb_Kl15_MainFunction() re-reads and debounces
  * the pin properly - no state is handled here. */
-ISR(INT0_vect)
+ISR(PCINT2_vect) 
 {
+
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

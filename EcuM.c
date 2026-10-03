@@ -21,10 +21,20 @@
 #include "DemSf.h"
 #include "ComSf.h"
 #include "DcmSf.h"
+#include "Rte.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
+
+/* 1 = real hardware deployment: true MCU Power-down sleep, wakes only via
+ *     the KL15 pin edge (PCINT2) or a hardware reset - cannot be woken by
+ *     a diagnostic command, matching a real node with no dedicated bus-wake
+ *     transceiver.
+ * 0 = simulation/bench testing: "sleep" is a logical state only - the MCU
+ *     keeps running, UART/DCM stay fully live and reachable, only PWM,
+ *     relays, and cyclic TX are suppressed. */
+#define ECUM_USE_REAL_SLEEP   0
 
 static EcuM_StateType s_ecum_state       = ECUM_STATE_STARTUP;
 static EcuM_ResetType s_ecum_reset_req   = ECUM_RESET_NONE;
@@ -133,6 +143,7 @@ void EcuM_MainFunction(void)
 			break;
 
         case ECUM_STATE_SLEEP:
+		#if (ECUM_USE_REAL_SLEEP == 1)
 			wdt_disable();   /* don't let the watchdog fire while we're asleep */
 
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -143,6 +154,15 @@ void EcuM_MainFunction(void)
 			Wdg_Init(WDTO_2S);  /* re-arm watchdog immediately on wake */
 
 			s_ecum_state = ECUM_STATE_RUN;
+		#else
+			/* Mock sleep: stay here, fully responsive, until EcuM_RequestWake()
+			 * clears the pending-sleep flag - via the real KL15 pin or the 0x010A
+			 * diagnostic override, both already call it. */
+			if (s_ecum_sleep_req == false)
+			{
+				s_ecum_state = ECUM_STATE_RUN;
+			}
+		#endif
 			break;
 
         default:

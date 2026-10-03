@@ -51,22 +51,25 @@ void peripheral_loop() {
 /* Task 10ms: Control Loop & Data Acquisition*/
 void App_Task_10ms(void)
 {
-    /* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
-    IoHwAb_Sensor_MainFunction();
+	if (EcuM_GetState() != ECUM_STATE_SLEEP)
+	{
+		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
+		IoHwAb_Sensor_MainFunction();
 
-    /* 2. DIAGNOSTICS (BSW): Evaluate electrical errors and update debounce counters */
-    DemSf_MainFunction();
+		/* 2. DIAGNOSTICS (BSW): Evaluate electrical errors and update debounce counters */
+		DemSf_MainFunction();
 
-    /* 3. LOGIC (ASW): Extract physical values from RTE and run PID control */
-    SWC_SensorMeasurement_Runnable(); 
-    
-    float v_in = SWC_SensorMeasurement_GetVin();
-    float v_out = SWC_SensorMeasurement_GetVout();
-    
-    SWC_PidController_Runnable(v_in, v_out);
+		/* 3. LOGIC (ASW): Extract physical values from RTE and run PID control */
+		SWC_SensorMeasurement_Runnable(); 
+		
+		float v_in = SWC_SensorMeasurement_GetVin();
+		float v_out = SWC_SensorMeasurement_GetVout();
+		
+		SWC_PidController_Runnable(v_in, v_out);
 
-    /* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
-    IoHwAb_Actuator_MainFunction();
+		/* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
+		IoHwAb_Actuator_MainFunction();
+	}
 
 	/* 5. EcuM Main Function */
 	EcuM_MainFunction(); 
@@ -76,21 +79,28 @@ void App_Task_10ms(void)
 /* Task 50ms: UDS Parser & Cyclic Telemetry Transmission*/
 void App_Task_50ms(void)
 {
-    /* 1. Rx (BSW): Parse incoming UDS diagnostic frames from tester */
+	/* 1. Monitor KL15 status */
+	IoHwAb_Kl15_MainFunction();
+
+    /* 2. Rx (BSW): Parse incoming UDS diagnostic frames from tester */
     Com_MainFunction_Rx();
 
-    /* 2. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
-    Com_MainFunction_Tx();
+	if (EcuM_GetState() != ECUM_STATE_SLEEP)
+	{
+		/* 3. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
+		Com_MainFunction_Tx();
+	}
 
-	/* 3. Monitor KL15 status */
-	IoHwAb_Kl15_MainFunction();
 }
 
 /* Task 100ms: Adc_StartScan cycle*/
 void App_Task_100ms(void)
 {
-    /* TRIGGER: Trigger next ADC scan cycle*/
-    Adc_StartScan();
+	if (EcuM_GetState() != ECUM_STATE_SLEEP)
+	{
+		/* TRIGGER: Trigger next ADC scan cycle*/
+		Adc_StartScan();
+	}
 }
 
 /* Task 500ms: Diagnostic Test Routines & DTC Memory Transmission */
@@ -99,8 +109,6 @@ void App_Task_500ms(void)
     /* 1. ASW: Execute active UDS 0x31 diagnostic test routines */
     //SWC_RoutineCtrl_Runnable_500ms();
 
-    /* 2. BSW: Transmit active confirmed DTC diagnostic frames */
-    //Com_Send_ActiveDTC_Frames();
 }
 
 /* =====================================================================
