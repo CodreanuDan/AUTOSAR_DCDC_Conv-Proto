@@ -29,6 +29,9 @@ static bool s_kl15_confirmed_state = false;
 static bool s_kl15_last_raw        = false;
 static uint8_t s_kl15_stable_count = 0U;
 
+#define KL15_SUSTAIN_SAMPLES   10U   /* ~500ms at the 50ms task cadence, on top of the 150ms debounce */
+static uint8_t s_kl15_sustain_count = 0U;
+
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
  ********************************************************/
