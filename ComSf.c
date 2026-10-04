@@ -162,32 +162,33 @@ void Com_MainFunction_Tx(void)
     }
 
     /* 2. Send PWM Info Frame (0xA2) every 100ms if cyclic updates enabled via DID 0x0108 (downscaled x5 times to match new 50ms task: 100ms -> 20ms)*/
-    //if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 20U))
-    if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 40U))
+    if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 20U))
+    //if ((s_cyclic_pwm_updates != 0U) && (timer_pwm_ms >= 40U))
     {
         timer_pwm_ms = 0U;
         Com_Send_DiagFrame_PWMInfo();
     }
 
     /* 3. Send PID Info Frame (0xA3) every 100ms if cyclic updates enabled via DID 0x0107 (downscaled x5 times to match new 50ms task: 100ms -> 20ms)*/
-    //if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 20U))
-    if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 40U))
+    if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 20U))
+    //if ((s_cyclic_pid_updates != 0U) && (timer_pid_ms >= 40U))
     {
         timer_pid_ms = 0U;
         Com_Send_DiagFrame_PIDInfo();
     }
 
     /* 4. Send Actuator Status Frame (0xA4) every 200ms if cyclic updates enabled via DID 0x0109 (downscaled x5 times to match new 50ms task: 200ms -> 40ms) */
+	if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 20U))
     //if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 40U))
-    if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 80U))
+    //if ((s_cyclic_act_updates != 0U) && (timer_act_ms >= 80U))
     {
         timer_act_ms = 0U;
         Com_Send_DiagFrame_ActuatorInfo();
     }
 
     /* 5. Send Active DTC Memory Frame (0xA5) every 500ms if cyclic updates enabled via DID 0x0106 (downscaled x5 times to match new 50ms task: 500ms -> 100ms)*/
-    //if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 100U))
-    if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 200U))
+    if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 100U))
+    //if ((s_cyclic_fault_updates != 0U) && (timer_fault_ms >= 200U))
     {
         timer_fault_ms = 0U;
         Com_Send_ActiveDTC_Frames();
@@ -264,10 +265,14 @@ void Com_Send_DiagFrame_PWMInfo(void)
     uint16_t pwm_frequency_hz = (uint16_t)(16000000UL / (8UL * (1UL + top_val))); 
 
     /* Determine bridge status based on OCR register limits */
-    if (ocr1a_val >= (uint16_t)(top_val * 0.99f))       { bridge_status = 3U; }  // OVERSHOOT
-    else if ((ocr1a_val > 0 && ocr1a_val <= 10U) || 
-			 (ocr1b_val > 0 && ocr1b_val <= 10U))       { bridge_status = 2U; }  // UNDERSHOOT
-	else if	 (ocr1a_val == 0 && ocr1a_val == 10U)		{ bridge_status = 0U; }  // OFF
+	if ((ocr1a_val >= (uint16_t)(top_val * 0.99f)) ||
+		(ocr1b_val >= (uint16_t)(top_val * 0.99f)))     { bridge_status = 3U; }  // OVERSHOOT
+
+	else if ((ocr1a_val > 0 && ocr1a_val <= 10U) || 
+		     (ocr1b_val > 0 && ocr1b_val <= 10U))       { bridge_status = 2U; }
+
+	else if	 (ocr1a_val == 0 && ocr1b_val == 0U)		{ bridge_status = 0U; }  // OFF
+
     else                                                { bridge_status = 1U; }  // OK
 
     /* 1. Header byte */
