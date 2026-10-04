@@ -264,9 +264,11 @@ void Com_Send_DiagFrame_PWMInfo(void)
     uint16_t pwm_frequency_hz = (uint16_t)(16000000UL / (8UL * (1UL + top_val))); 
 
     /* Determine bridge status based on OCR register limits */
-    if (ocr1a_val >= (uint16_t)(top_val * 0.99f))       { bridge_status = 1U; } 
-    else if ((ocr1a_val <= 10U) || (ocr1b_val <= 10U))  { bridge_status = 2U; } 
-    else                                                { bridge_status = 0U; }
+    if (ocr1a_val >= (uint16_t)(top_val * 0.99f))       { bridge_status = 3U; }  // OVERSHOOT
+    else if ((ocr1a_val > 0 && ocr1a_val <= 10U) || 
+			 (ocr1b_val > 0 && ocr1b_val <= 10U))       { bridge_status = 2U; }  // UNDERSHOOT
+	else if	 (ocr1a_val == 0 && ocr1a_val == 10U)		{ bridge_status = 0U; }  // OFF
+    else                                                { bridge_status = 1U; }  // OK
 
     /* 1. Header byte */
     Uart_TxByte(0xA2U); 
@@ -408,14 +410,19 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
 	Uart_TxByte(kl15_mirror_pin);
 	checksum += kl15_mirror_pin;
 
-    /* 5. Padding (4 bytes) */
-    for (i = 0U; i < 4U; i++) 
+	/* 5. EcuM operational state */
+	uint8_t ecum_state = (uint8_t)EcuM_GetState();
+	Uart_TxByte(ecum_state);
+	checksum += ecum_state;
+
+    /* 6. Padding (3 bytes) */
+    for (i = 0U; i < 3U; i++) 
     {
         Uart_TxByte(0x00U);
         checksum += 0x00U;
     }
     
-    /* 6. Alive Counter, Checksum, and Terminator */
+    /* 7. Alive Counter, Checksum, and Terminator */
     Uart_TxByte(s_alive_counter_DiagFrame_Act); 
     checksum += s_alive_counter_DiagFrame_Act;
     

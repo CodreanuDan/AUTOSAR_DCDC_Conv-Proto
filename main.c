@@ -51,11 +51,17 @@ void peripheral_loop() {
 /* Task 10ms: Control Loop & Data Acquisition*/
 void App_Task_10ms(void)
 {
-	if (EcuM_GetState() == ECUM_STATE_RUN)
+	EcuM_StateType st = EcuM_GetState();
+	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
 	{
 		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
 		IoHwAb_Sensor_MainFunction();
-
+	}
+	if (st == ECUM_STATE_RUN) 
+	{
+		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
+		IoHwAb_Sensor_MainFunction();
+	
 		/* 2. DIAGNOSTICS (BSW): Evaluate electrical errors and update debounce counters */
 		DemSf_MainFunction();
 
@@ -97,7 +103,8 @@ void App_Task_50ms(void)
 /* Task 100ms: Adc_StartScan cycle*/
 void App_Task_100ms(void)
 {
-	if (EcuM_GetState() == ECUM_STATE_RUN)
+	EcuM_StateType st = EcuM_GetState();
+	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
 	{
 		/* TRIGGER: Trigger next ADC scan cycle*/
 		Adc_StartScan();

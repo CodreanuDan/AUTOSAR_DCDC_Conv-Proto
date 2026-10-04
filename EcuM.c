@@ -42,7 +42,7 @@ static EcuM_ResetType s_ecum_reset_req   = ECUM_RESET_NONE;
 
 static bool s_ecum_sleep_req = false;
 
-#define ECUM_SLEEP_GRACE_MS   100UL
+#define ECUM_SLEEP_GRACE_MS   10000UL
 static uint32_t s_ecum_linger_start_tick = 0UL;
 
 /********************************************************
@@ -116,10 +116,6 @@ void EcuM_Init(void)
 void EcuM_MainFunction(void)
 {
 
-	Wdg_Trigger();   /* every call, every state - the mock sleep path keeps the
-				   * CPU fully running the whole time, so there's no reason
-				   * to ever stop feeding it */
-
     switch (s_ecum_state)
     {
         case ECUM_STATE_STARTUP:
@@ -128,7 +124,7 @@ void EcuM_MainFunction(void)
 
         case ECUM_STATE_RUN:
             /* 1. Service the Watchdog timer periodically */
-			//Wdg_Trigger();
+			Wdg_Trigger();
 
             /* 2. Check if a software reset or shutdown was requested via DCM */
             if (s_ecum_reset_req != ECUM_RESET_NONE)
@@ -142,20 +138,24 @@ void EcuM_MainFunction(void)
             break;
 
         case ECUM_STATE_SHUTDOWN:
-            /* 1. Disable PWM outputs and safely set relays to LOW */
+			/* Leaving RUN - no watchdog needed until we return */
+			Wdg_Disable();  
+
+            /* 2. Disable PWM outputs and safely set relays to LOW */
             Pwm_SetDutyCycle(0U, 0U);
             Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, STD_LOW);
             Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, STD_LOW);
 
-            /* 2. Save all persistent calibrations and fault memories to EEPROM via NvM */
+            /* 3. Save all persistent calibrations and fault memories to EEPROM via NvM */
             NvM_WriteAll();
 
-            /* 3. Perform hardware reset if requested via UDS 0x11 */
+            /* 4. Perform hardware reset if requested via UDS 0x11 */
             if (s_ecum_reset_req == ECUM_RESET_SOFT)
             {
                 Wdg_PerformReset();
             }
-
+			
+			/* 5. Perform KL15 off cycle if requested via UDS KL15 Emulation or real KL15 */
 			else if (s_ecum_sleep_req == true)
 			{
 			#if (ECUM_USE_REAL_SLEEP == 1)
@@ -168,33 +168,31 @@ void EcuM_MainFunction(void)
 		case ECUM_STATE_TX_LINGER:
 			if (s_ecum_sleep_req == false)
 			{
+				Wdg_Init(WDTO_2S);               /* re-arm watchdog immediately on wake */
 				s_ecum_state = ECUM_STATE_RUN;   /* KL15 came back during the window - cancel, resume normally */
 			}
 			else if ((g_tick_ms - s_ecum_linger_start_tick) >= ECUM_SLEEP_GRACE_MS)
 			{
-				s_ecum_sleep_req = false;
 				s_ecum_state = ECUM_STATE_SLEEP;
 			}
 			break;
 
         case ECUM_STATE_SLEEP:
 		#if (ECUM_USE_REAL_SLEEP == 1)
-			wdt_disable();   /* don't let the watchdog fire while we're asleep */
-
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 			sleep_enable();
-			sleep_cpu();        /* halts here until INT0 (KL15 edge) wakes it */
+			sleep_cpu();        /* halts here until KL15 on PC_INT wakes it */
 			sleep_disable();
-
 			Wdg_Init(WDTO_2S);  /* re-arm watchdog immediately on wake */
-
 			s_ecum_state = ECUM_STATE_RUN;
 		#else
 			/* Mock sleep: stay here, fully responsive, until EcuM_RequestWake()
 			 * clears the pending-sleep flag - via the real KL15 pin or the 0x010A
 			 * diagnostic override, both already call it. */
+			wdt_disable();   /* don't let the watchdog fire while we're asleep */
 			if (s_ecum_sleep_req == false)
 			{
+                Wdg_Init(WDTO_2S);   /* re-arm watchdog immediately on wake */
 				s_ecum_state = ECUM_STATE_RUN;
 			}
 		#endif

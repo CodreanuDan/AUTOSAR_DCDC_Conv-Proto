@@ -94,15 +94,16 @@ Frame_Table:
         byte_offset: 3
         size: 2
         scaling: "pwm_duty_b"
-      - name: "Bridge"
+      - name: "SG_pwmData_1_BridgeStat_"
         unit: "St"
         color: "#bcbd22"
         byte_offset: 5
         size: 1
         value_table:
-          0: "NORMAL"
-          1: "OVERSHOOT"
-          2: "UNDERSHOOT"
+          0: "OFF"
+          1: "OK"
+          2: "UNSH"
+          3: "OVSH"
         scaling: "direct"
       - name: "SG_pwmData_1_Freq_Hz_"
         unit: "Hz"
@@ -175,6 +176,35 @@ Frame_Table:
         value_table:
           0: "OFF"
           1: "ON"
+        scaling: "direct"
+      - name: "SG_actInfo_1_Kl15State_"
+        unit: "0/1"
+        color: "#39ff14"
+        byte_offset: 3
+        size: 1
+        value_table:
+          0: "OFF"
+          1: "ON"
+        scaling: "direct"
+      - name: "SG_actInfo_1_Kl15Mirror_"
+        unit: "LO/HI"
+        color: "#19ff14"
+        byte_offset: 4
+        size: 1
+        value_table:
+          0: "LOW"
+          1: "HIGH"
+      - name: "SG_actInfo_1_EcuMState_"
+        unit: "St"
+        color: "#000000"
+        byte_offset: 5
+        size: 1
+        value_table:
+          0: "STARTUP"
+          1: "RUN"
+          2: "SHUTDOWN"
+          3: "TX_LINGER"
+          4: "SLEEP"
         scaling: "direct"
       - name: "SG_actInfo_1_AliveCt__"
         unit: "Ct"
@@ -265,7 +295,7 @@ DID_Table:
     max: 1000
     step: 50
     default: 100
-    size: 1
+    size: 2
 
   - name: "VoutSet"
     did: "0102"
@@ -334,6 +364,14 @@ DID_Table:
 
   - name: "CycCnvUpdt"
     did: "0110"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+    size: 1
+
+  - name: "Kl15Stat"
+    did: "010A"
     type: "single_spin"
     min: 0
     max: 1
