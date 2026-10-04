@@ -214,7 +214,7 @@ void Com_Send_DiagFrame_ConvMonitorData(void)
     checksum += 0xAAU;
     
     /* 2. ADC Data payload (4 channels x 2 bytes = 8 bytes) */
-	uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+	static uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
 	if (Adc_IsScanDone() == TRUE) 
     {
         /* Read ADC raw buffer data and populate local buffer */

@@ -194,9 +194,10 @@ Frame_Table:
         value_table:
           0: "LOW"
           1: "HIGH"
+        scaling: "direct"
       - name: "SG_actInfo_1_EcuMState_"
         unit: "St"
-        color: "#000000"
+        color: "#19ff14"
         byte_offset: 5
         size: 1
         value_table:

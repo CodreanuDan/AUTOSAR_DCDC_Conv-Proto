@@ -59,9 +59,6 @@ void App_Task_10ms(void)
 	}
 	if (st == ECUM_STATE_RUN) 
 	{
-		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
-		IoHwAb_Sensor_MainFunction();
-	
 		/* 2. DIAGNOSTICS (BSW): Evaluate electrical errors and update debounce counters */
 		DemSf_MainFunction();
 
