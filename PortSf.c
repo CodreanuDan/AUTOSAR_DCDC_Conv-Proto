@@ -33,6 +33,7 @@
  * and sets the default initial output levels for relays to OFF (STD_LOW).
  * Configure KL15 input pin PD2 (no internal pull-up - relies on external pull-down).
  * Configure KL15 mirror output pin PD3, default LOW.
+ * Coolant tank level inputs, INPUT_PULLUP.
  * @param: void
  * @return: void
  */
@@ -41,18 +42,18 @@ void Port_Init(void)
     /* Configure PWM pins PB1 (OC1A) and PB2 (OC1B) as digital outputs */
     DDRB |= (1U << PORT_PIN_PWM_OC1A) | (1U << PORT_PIN_PWM_OC1B);
 
-    /* Configure Relay pins PD4 and PD5 as digital outputs */
-    DDRD |= (1U << PORT_PIN_RELAY_IN) | (1U << PORT_PIN_RELAY_OUT);
-
-    /* Set default initial state: disable relays (STD_LOW) */
-    PORTD &= ~((1U << PORT_PIN_RELAY_IN) | (1U << PORT_PIN_RELAY_OUT));
+    /* Configure Relay pins PD4 and PD5 as digital outputs - Set default initial state: disable relays (STD_LOW) */ 
+    DDRD |= (1U << PORT_PIN_RELAY_IN) | (1U << PORT_PIN_RELAY_OUT); PORTD &= ~((1U << PORT_PIN_RELAY_IN) | (1U << PORT_PIN_RELAY_OUT));
 
 	/* Configure KL15 input pin PD2 (no internal pull-up - relies on external pull-down) */
 	DDRD &= ~(1U << PORT_PIN_KL15_IN);
 
 	/* Configure KL15 mirror output pin PD3, default LOW */
-	DDRD |= (1U << PORT_PIN_KL15_MIRROR);
-	PORTD &= ~(1U << PORT_PIN_KL15_MIRROR);
+	DDRD |= (1U << PORT_PIN_KL15_MIRROR); PORTD &= ~(1U << PORT_PIN_KL15_MIRROR);
+
+	/* Coolant tank level inputs, INPUT_PULLUP */
+	DDRD &= ~((1 << PORT_PIN_TANK_OUT1) | (1 << PORT_PIN_TANK_OUT2)); PORTD |= ((1 << PORT_PIN_TANK_OUT1) | (1 << PORT_PIN_TANK_OUT2));
+	DDRB &= ~((1 << PORT_PIN_TANK_OUT3) | (1 << PORT_PIN_TANK_OUT4)); PORTB |= ((1 << PORT_PIN_TANK_OUT3) | (1 << PORT_PIN_TANK_OUT4));
 }
 
 /************* END OF FUCTION DEFINITIONS ************/

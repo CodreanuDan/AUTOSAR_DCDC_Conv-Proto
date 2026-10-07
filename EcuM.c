@@ -161,11 +161,11 @@ void EcuM_MainFunction(void)
 			#if (ECUM_USE_REAL_SLEEP == 1)
 				s_ecum_sleep_req = false;
 			#endif
-				s_ecum_state = ECUM_STATE_TX_LINGER;        
+				s_ecum_state = ECUM_STATE_PRE_SLEEP;        
 			}
 			break;
 
-		case ECUM_STATE_TX_LINGER:
+		case ECUM_STATE_PRE_SLEEP:
 			if (s_ecum_sleep_req == false)
 			{
 				Wdg_Init(WDTO_2S);               /* re-arm watchdog immediately on wake */

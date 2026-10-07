@@ -16,7 +16,7 @@
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
- *********************************--------------------**/
+ ******************************************************/
 /* Dedicated filter instances for all four system analog channels */
 static MovAvg_HandleType s_filt_iin;
 static MovAvg_HandleType s_filt_vin;
@@ -31,6 +31,25 @@ static uint8_t s_kl15_stable_count = 0U;
 
 #define KL15_SUSTAIN_SAMPLES   10U   /* ~500ms at the 50ms task cadence, on top of the 150ms debounce */
 static uint8_t s_kl15_sustain_count = 0U;
+
+#define LEVEL_CONFIRM_SAMPLES   3U   /* identical consecutive reads, ~300 ms at the 100 ms task */
+static uint8_t s_level_last_raw   = 0U;
+static uint8_t s_level_same_count = 0U;
+static uint8_t s_level_pct        = 0U;   /* last VALID level, held while the sensor is implausible */
+
+/*******************************************************
+ *            START OF LOCAL FUNCTION PROTOTYPES
+ ******************************************************/
+
+/*
+ * Function name: MovAvg_Init
+ * @brief Bit set = probe reached (output released, pulled high). Only a contiguous
+ * run from OUT1 is a physically possible level.
+ * @param: uint8_t raw 
+ * @param: uint8_t *pct 
+ * @return: void
+ */
+static bool IoHwAb_Level_Decode(uint8_t raw, uint8_t *pct);
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -277,6 +296,61 @@ void IoHwAb_Kl15_Init(void)
 
     Dio_WriteChannel(DIO_CHANNEL_KL15_MIRROR, raw ? STD_HIGH : STD_LOW);
     Rte_Write_Kl15State((uint8_t)raw);
+}
+
+static bool IoHwAb_Level_Decode(uint8_t raw, uint8_t *pct)
+{
+	switch (raw)
+	{
+		case 0x00U: *pct = 0U;   return true;
+		case 0x01U: *pct = 25U;  return true;
+		case 0x03U: *pct = 50U;  return true;
+		case 0x07U: *pct = 75U;  return true;
+		case 0x0FU: *pct = 100U; return true;
+		default:				 return false;
+	}
+}
+
+/**
+ * Function name: IoHwAb_Level_MainFunction
+ * @brief Reads digital channels tied to the tank sensor and converts them to liquid level.
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Level_MainFunction(void)
+{
+    uint8_t raw = (uint8_t)(((Dio_ReadChannel(DIO_CHANNEL_TANK_OUT1) == STD_HIGH) ? 0x01U : 0U)
+                          | ((Dio_ReadChannel(DIO_CHANNEL_TANK_OUT2) == STD_HIGH) ? 0x02U : 0U)
+                          | ((Dio_ReadChannel(DIO_CHANNEL_TANK_OUT3) == STD_HIGH) ? 0x04U : 0U)
+                          | ((Dio_ReadChannel(DIO_CHANNEL_TANK_OUT4) == STD_HIGH) ? 0x08U : 0U));
+
+	if (raw == s_level_last_raw)
+	{
+		if (s_level_same_count < LEVEL_CONFIRM_SAMPLES)
+		{
+			s_level_same_count;
+		}
+	}
+	else
+	{
+		s_level_last_raw = raw;
+		s_level_same_count = 1U;
+	}
+
+	if (s_level_same_count >= LEVEL_CONFIRM_SAMPLES)
+	{
+		uint8_t pct;
+		bool valid = IoHwAb_Level_Decode(raw, &pct);
+
+		if (valid) 
+		{
+			s_level_pct = pct;
+		}
+
+		Rte_Write_CoolantLevelRaw(raw);
+        Rte_Write_CoolantLevel(s_level_pct);
+        Rte_Write_LevelSensorValid((uint8_t)valid);
+	}
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

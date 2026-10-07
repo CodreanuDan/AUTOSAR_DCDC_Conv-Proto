@@ -30,7 +30,7 @@ typedef enum {
     ECUM_STATE_STARTUP,     /* System initialization phase */
     ECUM_STATE_RUN,         /* Normal operational run state */
     ECUM_STATE_SHUTDOWN,    /* Safe shutdown and non-volatile storage save */
-	ECUM_STATE_TX_LINGER,   /* Actuation/sensing already off, TX still alive for the grace window */
+	ECUM_STATE_PRE_SLEEP,   /* Actuation/sensing already off, TX still alive for the grace window */
     ECUM_STATE_SLEEP        /* Low power sleep mode */
 } EcuM_StateType;
 

@@ -36,6 +36,12 @@ extern "C" {
 #define PORT_PIN_KL15_IN       PD2   /* INT0 - requires external 10k pull-down to GND */
 #define PORT_PIN_KL15_MIRROR   PD3
 
+/* Coolant tank level inputs, thermometer code, OUT1 = lowest probe */
+#define PORT_PIN_TANK_OUT1   PD6
+#define PORT_PIN_TANK_OUT2   PD7
+#define PORT_PIN_TANK_OUT3   PB0
+#define PORT_PIN_TANK_OUT4   PB4
+
 /*******************************************************
  *            START OF VARIABLE DECLARATIONS
  *******************************************************/
@@ -48,12 +54,15 @@ extern "C" {
  *             START OF FUCTION PROTOTYPES
  *******************************************************/
 
- /**
+/**
  * Function name: Port_Init
  * @brief Initializes all microcontroller port pins used by the system.
  * Configures PB1 and PB2 as digital outputs for PWM generation,
  * configures PD4 and PD5 as digital outputs for input/output relay control,
  * and sets the default initial output levels for relays to OFF (STD_LOW).
+ * Configure KL15 input pin PD2 (no internal pull-up - relies on external pull-down).
+ * Configure KL15 mirror output pin PD3, default LOW.
+ * Coolant tank level inputs, INPUT_PULLUP.
  * @param: void
  * @return: void
  */

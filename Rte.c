@@ -36,6 +36,9 @@ static uint8_t RTE_VAR_CyclicActUpdates = 0U;
 static uint8_t RTE_VAR_CyclicPidUpdates = 0U;
 static uint8_t RTE_VAR_TickMs = 0U;
 static uint8_t RTE_VAR_Kl15State = 0U;
+static uint8_t RTE_VAR_CoolantLevel      = 0U;
+static uint8_t RTE_VAR_CoolantLevelRaw   = 0U;
+static uint8_t RTE_VAR_LevelSensorValid  = 0U;  
 
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
@@ -308,4 +311,34 @@ void Rte_Write_Kl15State(uint8_t val)
 uint8_t Rte_Read_Kl15State(void) 
 { 
 	return RTE_VAR_Kl15State; 
+}
+
+void Rte_Write_CoolantLevel(uint8_t val)
+{
+	RTE_VAR_CoolantLevel = val;
+} 
+
+uint8_t Rte_Read_CoolantLevel(void)
+{
+	return RTE_VAR_CoolantLevel;
+}
+
+void Rte_Write_CoolantLevelRaw(uint8_t val)
+{
+	RTE_VAR_CoolantLevel = val;
+}
+
+uint8_t Rte_Read_CoolantLevelRaw(void)
+{
+	return RTE_VAR_CoolantLevelRaw;
+}
+
+void Rte_Write_LevelSensorValid(uint8_t val)
+{
+	Rte_Write_LevelSensorValid = val;
+}  
+
+uint8_t Rte_Read_LevelSensorValid(void)
+{
+	return RTE_VAR_LevelSensorValid;
 }

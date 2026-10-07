@@ -75,5 +75,11 @@ void Rte_Write_TickMs(uint8_t val);
 uint8_t Rte_Read_TickMs(void);
 void Rte_Write_Kl15State(uint8_t val);
 uint8_t Rte_Read_Kl15State(void);
+void Rte_Write_CoolantLevel(uint8_t val);        
+uint8_t Rte_Read_CoolantLevel(void);
+void Rte_Write_CoolantLevelRaw(uint8_t val);    
+uint8_t Rte_Read_CoolantLevelRaw(void);
+void Rte_Write_LevelSensorValid(uint8_t val);  
+uint8_t Rte_Read_LevelSensorValid(void);
 
 #endif /* RTE_H */

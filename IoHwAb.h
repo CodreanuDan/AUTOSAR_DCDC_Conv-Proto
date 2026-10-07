@@ -152,6 +152,14 @@ void IoHwAb_Kl15_MainFunction(void);
  */
 void IoHwAb_Kl15_Init(void);
 
+/**
+ * Function name: IoHwAb_Level_MainFunction
+ * @brief Reads digital channels tied to the tank sensor and converts them to liquid level.
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Level_MainFunction(void);
+
 
 /************* END OF FUNCTION PROTOTYPES ************/
 

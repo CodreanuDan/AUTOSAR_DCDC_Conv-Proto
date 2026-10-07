@@ -30,9 +30,9 @@ void peripheral_loop() {
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "StdTypes.h"
-#include "EcuM.h"
 
 /* BSW & MCAL APIs */
+#include "EcuM.h"
 #include "IoHwAb.h"
 #include "DemSf.h"
 #include "ComSf.h"
@@ -52,7 +52,7 @@ void peripheral_loop() {
 void App_Task_10ms(void)
 {
 	EcuM_StateType st = EcuM_GetState();
-	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
+	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
 		IoHwAb_Sensor_MainFunction();
@@ -89,7 +89,7 @@ void App_Task_50ms(void)
     Com_MainFunction_Rx();
 
 	EcuM_StateType st = EcuM_GetState();
-    if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
+    if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* 3. Tx (BSW): Transmit cyclic diagnostic frames and system telemetry*/
 		Com_MainFunction_Tx();
@@ -101,14 +101,16 @@ void App_Task_50ms(void)
 void App_Task_100ms(void)
 {
 	EcuM_StateType st = EcuM_GetState();
-	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_TX_LINGER))
+	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* TRIGGER: Trigger next ADC scan cycle*/
 		Adc_StartScan();
+		/* TRIGGER: Trigger next tank level scan cycle*/
+		IoHwAb_Level_MainFunction();
 	}
 }
 
-/* Task 500ms: Diagnostic Test Routines & DTC Memory Transmission */
+/* Task 500ms: Diagnostic Test Routines */
 void App_Task_500ms(void)
 {
     /* 1. ASW: Execute active UDS 0x31 diagnostic test routines */
