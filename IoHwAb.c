@@ -328,7 +328,7 @@ void IoHwAb_Level_MainFunction(void)
 	{
 		if (s_level_same_count < LEVEL_CONFIRM_SAMPLES)
 		{
-			s_level_same_count;
+			s_level_same_count ++;
 		}
 	}
 	else

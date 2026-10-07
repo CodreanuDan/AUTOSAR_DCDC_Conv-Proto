@@ -17,6 +17,7 @@
 #include "PwmSf.h"
 #include "Rte.h"
 #include "DioSf.h"
+#include "EcuM.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS

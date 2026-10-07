@@ -335,7 +335,7 @@ uint8_t Rte_Read_CoolantLevelRaw(void)
 
 void Rte_Write_LevelSensorValid(uint8_t val)
 {
-	Rte_Write_LevelSensorValid = val;
+	RTE_VAR_LevelSensorValid = val;
 }  
 
 uint8_t Rte_Read_LevelSensorValid(void)

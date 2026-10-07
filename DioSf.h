@@ -46,10 +46,10 @@ typedef uint8_t Dio_LevelType;
 #define DIO_CHANNEL_RELAY_OUT    ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD5))
 #define DIO_CHANNEL_KL15_IN      ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD2))
 #define DIO_CHANNEL_KL15_MIRROR  ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD3))
-#define DIO_CHANNEL_TANK_OUT1	 ((Dio_ChannelType)((DIO_PORT_D << 4U  | PD6))
-#define DIO_CHANNEL_TANK_OUT2	 ((Dio_ChannelType)((DIO_PORT_D << 4U  | PD7))
-#define DIO_CHANNEL_TANK_OUT3    ((Dio_ChannelType)((DIO_PORT_B << 4U  | PB0))
-#define DIO_CHANNEL_TANK_OUT4    ((Dio_ChannelType)((DIO_PORT_B << 4U  | PB4))
+#define DIO_CHANNEL_TANK_OUT1	 ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD6))
+#define DIO_CHANNEL_TANK_OUT2	 ((Dio_ChannelType)((DIO_PORT_D << 4U) | PD7))
+#define DIO_CHANNEL_TANK_OUT3    ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB0))
+#define DIO_CHANNEL_TANK_OUT4    ((Dio_ChannelType)((DIO_PORT_B << 4U) | PB4))
 
 /*******************************************************
  *             START OF FUNCTION PROTOTYPES
