@@ -325,7 +325,7 @@ uint8_t Rte_Read_CoolantLevel(void)
 
 void Rte_Write_CoolantLevelRaw(uint8_t val)
 {
-	RTE_VAR_CoolantLevel = val;
+	 RTE_VAR_CoolantLevelRaw = val;
 }
 
 uint8_t Rte_Read_CoolantLevelRaw(void)
