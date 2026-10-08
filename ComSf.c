@@ -29,6 +29,7 @@ static uint8_t s_alive_counter_DiagFrame_PWMInfo         = 0U;
 static uint8_t s_alive_counter_DiagFrame_PID             = 0U;
 static uint8_t s_alive_counter_DiagFrame_Act             = 0U;
 static uint8_t s_alive_counter_DiagFrame_DTC             = 0U;
+static uint8_t s_alive_counter_DiagFrame_Cool            = 0U;
 
 /* Static Cyclic Transmission Flags (Controlled via Setters) */
 static uint8_t s_cyclic_conv_updates  = 1U; /* DID 0x0110 CycCnvUpdt: Default enabled */
@@ -36,6 +37,7 @@ static uint8_t s_cyclic_pwm_updates   = 1U; /* DID 0x0108 CycPwmUpdt: Default en
 static uint8_t s_cyclic_pid_updates   = 1U; /* DID 0x0107 CycPidUpdt: Default enabled */
 static uint8_t s_cyclic_act_updates   = 1U; /* DID 0x0109 CycActUpdt: Default enabled */
 static uint8_t s_cyclic_fault_updates = 0U; /* DID 0x0106 CycDemUpdt: Default disabled */
+static uint8_t s_cyclic_cool_updates = 1U;  /* DID 0x0127 CycCoolUpdt: Default enabled */
 
 
 /*******************************************************
@@ -56,6 +58,8 @@ uint8_t Com_GetCyclicActUpdates(void)           { return s_cyclic_act_updates; }
 void Com_SetCyclicFaultUpdates(uint8_t enable) { s_cyclic_fault_updates = enable; }
 uint8_t Com_GetCyclicFaultUpdates(void)         { return s_cyclic_fault_updates; }
 
+void Com_SetCyclicCoolUpdates(uint8_t enable) { s_cyclic_cool_updates = enable; }
+uint8_t Com_GetCyclicCoolUpdates(void)         { return s_cyclic_cool_updates; }
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
  *******************************************************/
@@ -146,13 +150,15 @@ void Com_MainFunction_Tx(void)
     static uint16_t timer_pid_ms   = 0U;
     static uint16_t timer_act_ms   = 0U;
     static uint16_t timer_fault_ms = 0U;
-
+	static uint16_t timer_cool_ms = 0U;      
+                 
     /* Base task call interval: 10ms */
     timer_adc_ms   += 10U;
     timer_pwm_ms   += 10U;
     timer_pid_ms   += 10U;
     timer_act_ms   += 10U;
     timer_fault_ms += 10U;
+	timer_cool_ms += 10U;   
 
     /* 1. Send ADC Monitoring Frame (0xAA) every 50ms if cyclic updates enabled via DID 0x0110 (downscaled x5 times to match new 50ms task: 50ms -> 10ms) */
     //if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 10U))
@@ -194,6 +200,13 @@ void Com_MainFunction_Tx(void)
         timer_fault_ms = 0U;
         Com_Send_ActiveDTC_Frames();
     }
+
+	/* 6. Coolant data frame (0xA6), same timer units as the DTC frame: 100 = 500 ms real */
+	if ((s_cyclic_cool_updates != 0U) && (timer_cool_ms >= 100U))
+	{
+		timer_cool_ms = 0U;
+		Com_Send_DiagFrame_CoolantData();
+	}
 }
 
 /* ----------------------------- FRAME TX FUNCTIONS -------------------------------------------*/
@@ -538,6 +551,43 @@ void Com_Send_ActiveDTC_Frames(void)
 
         s_alive_counter_DiagFrame_DTC = (s_alive_counter_DiagFrame_DTC + 1U) % 16U;
     }
+}
+
+
+/**
+ * Function name: Com_Send_DiagFrame_CoolantData
+ * @brief Transmits coolant temperature, humidity and tank level (Header 0xA6).
+ * @param: void
+ * @return: void
+ */
+void Com_Send_DiagFrame_CoolantData(void)
+{
+    uint8_t i;
+    uint8_t checksum = 0U;
+    uint8_t payload[8];
+
+    payload[0] = 0U;                              /* Temp_C_ low  (SHT21 not wired yet) */
+    payload[1] = 0U;                              /* Temp_C_ high */
+    payload[2] = 0U;                              /* Hum_Pct_ low */
+    payload[3] = 0U;                              /* Hum_Pct_ high */
+    payload[4] = Rte_Read_CoolantLevel();
+    payload[5] = Rte_Read_CoolantLevelRaw();
+    payload[6] = (Rte_Read_LevelSensorValid() != 0U) ? 0x02U : 0x00U;
+    payload[7] = 0U;
+
+    Uart_TxByte(0xA6U);
+    checksum += 0xA6U;
+    for (i = 0U; i < 8U; i++)
+    {
+        Uart_TxByte(payload[i]);
+        checksum += payload[i];
+    }
+    Uart_TxByte(s_alive_counter_DiagFrame_Cool);
+    checksum += s_alive_counter_DiagFrame_Cool;
+    Uart_TxByte(checksum);
+    Uart_TxByte(0x0DU);
+
+    s_alive_counter_DiagFrame_Cool = (s_alive_counter_DiagFrame_Cool + 1U) % 16U;
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

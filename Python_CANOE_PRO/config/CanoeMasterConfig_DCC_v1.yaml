@@ -204,7 +204,7 @@ Frame_Table:
           0: "STARTUP"
           1: "RUN"
           2: "SHUTDOWN"
-          3: "TX_LINGER"
+          3: "PRESLEEP"
           4: "SLEEP"
         scaling: "direct"
       - name: "SG_actInfo_1_AliveCt__"
@@ -245,6 +245,49 @@ Frame_Table:
         size: 1
         scaling: "direct"
       - name: "SG_demInfo_1_AliveCt__"
+        unit: "Ct"
+        color: "#ff9800"
+        byte_offset: 9
+        size: 1
+        scaling: "direct"
+
+  - header_hex: "A6"
+    name: "BO_coolData_1_"
+    color: "#00B0FF"
+    description: "Coolant Temperature, Humidity and Tank Level"
+    length: 12
+    signals:
+      - name: "SG_coolData_1_Temp_C_"
+        unit: "degC"
+        color: "#ff5252"
+        byte_offset: 1
+        size: 2
+        scaling: "int16_div100"
+      - name: "SG_coolData_1_Hum_Pct_"
+        unit: "%"
+        color: "#40c4ff"
+        byte_offset: 3
+        size: 2
+        scaling: "div100"
+      - name: "SG_coolData_1_Level_p_"
+        unit: "%"
+        color: "#2979ff"
+        byte_offset: 5
+        size: 1
+        scaling: "direct"
+      - name: "SG_coolData_1_LevelRaw_"
+        unit: "Hex"
+        color: "#7c4dff"
+        byte_offset: 6
+        size: 1
+        scaling: "direct"
+      - name: "SG_coolData_1_SensStat_"
+        unit: "Flags"
+        color: "#ffd740"
+        byte_offset: 7
+        size: 1
+        scaling: "direct"
+      - name: "SG_coolData_1_AliveCt__"
         unit: "Ct"
         color: "#ff9800"
         byte_offset: 9
@@ -378,7 +421,15 @@ DID_Table:
     max: 1
     default: 1
     size: 1
-    
+
+  - name: "CycCoolUpdt"
+    did: "0127"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+    size: 1
+
 # 4. DTC Table (Diagnostic Trouble Codes) --> Fault Memory (0xA5-Diag Frame / SID 0x19)
 DTC_Table:
   "0x1A0100":

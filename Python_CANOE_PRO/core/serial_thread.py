@@ -100,6 +100,12 @@ class SerialReaderThread(QtCore.QThread):
                                         freq = struct.unpack('<H', packet[6:8])[0] if header_hex == "A2" else 5000
                                         top_val = 16000000.0 / freq if freq > 0 else 3200.0
                                         val = (val / top_val) * 100.0 * 8
+                                    elif scaling == "div100":
+                                        val = val / 100.0
+                                    elif scaling == "int16_div100":
+                                        if val >= 0x8000:          # the unsigned unpack above, fixed up to two's complement here
+                                            val -= 0x10000
+                                        val = val / 100.0
                                         
                                     values.append(float(val))
                                     

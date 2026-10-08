@@ -45,6 +45,9 @@ uint8_t Com_GetCyclicActUpdates(void);
 void Com_SetCyclicFaultUpdates(uint8_t enable);
 uint8_t Com_GetCyclicFaultUpdates(void);
 
+void Com_SetCyclicCoolUpdates(uint8_t enable);
+uint8_t Com_GetCyclicCoolUpdates(void);
+     
 /**
  * Function name: Com_MainFunction_Rx
  * @brief Periodically polls the UART ring buffer, parses incoming bytes,
@@ -105,6 +108,14 @@ void Com_Send_DiagFrame_ActuatorInfo(void);
  * @return: void
  */
 void Com_Send_ActiveDTC_Frames(void);
+
+/**
+ * Function name: Com_Send_DiagFrame_CoolantData
+ * @brief Transmits coolant temperature, humidity and tank level (Header 0xA6).
+ * @param: void
+ * @return: void
+ */
+void Com_Send_DiagFrame_CoolantData(void)
 
 /************* END OF FUNCTION PROTOTYPES ************/
 
