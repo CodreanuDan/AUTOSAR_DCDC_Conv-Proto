@@ -280,12 +280,21 @@ Frame_Table:
         color: "#7c4dff"
         byte_offset: 6
         size: 1
+        value_table:
+          0: "EMPT"
+          1: "LOW"
+          3: "HALF"
+          7: "NRML"
+          15: "FULL"
         scaling: "direct"
       - name: "SG_coolData_1_SensStat_"
         unit: "Flags"
         color: "#ffd740"
         byte_offset: 7
         size: 1
+        value_table:
+          0: "INVALID"
+          2: "VALID"
         scaling: "direct"
       - name: "SG_coolData_1_AliveCt__"
         unit: "Ct"

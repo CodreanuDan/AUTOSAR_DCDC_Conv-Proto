@@ -115,7 +115,7 @@ void Com_Send_ActiveDTC_Frames(void);
  * @param: void
  * @return: void
  */
-void Com_Send_DiagFrame_CoolantData(void)
+void Com_Send_DiagFrame_CoolantData(void);
 
 /************* END OF FUNCTION PROTOTYPES ************/
 
