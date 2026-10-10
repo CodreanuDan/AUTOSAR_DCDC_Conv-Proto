@@ -29,11 +29,12 @@
  * Function name: Port_Init
  * @brief Initializes all microcontroller port pins used by the system.
  * Configures PB1 and PB2 as digital outputs for PWM generation,
- * configures PD4 and PD5 as digital outputs for input/output relay control,
+ * configure s PD4 and PD5 as digital outputs for input/output relay control,
  * and sets the default initial output levels for relays to OFF (STD_LOW).
  * Configure KL15 input pin PD2 (no internal pull-up - relies on external pull-down).
  * Configure KL15 mirror output pin PD3, default LOW.
  * Coolant tank level inputs, INPUT_PULLUP.
+ * Cooling fan pin PB3 (OC2A Timer 2 Fast PWM)
  * @param: void
  * @return: void
  */
@@ -54,6 +55,10 @@ void Port_Init(void)
 	/* Coolant tank level inputs, INPUT_PULLUP */
 	DDRD &= ~((1 << PORT_PIN_TANK_OUT1) | (1 << PORT_PIN_TANK_OUT2)); PORTD |= ((1 << PORT_PIN_TANK_OUT1) | (1 << PORT_PIN_TANK_OUT2));
 	DDRB &= ~((1 << PORT_PIN_TANK_OUT3) | (1 << PORT_PIN_TANK_OUT4)); PORTB |= ((1 << PORT_PIN_TANK_OUT3) | (1 << PORT_PIN_TANK_OUT4));
+	
+	/* Cooling fan pin PB3 (OC2A Timer 2 Fast PWM) */
+	PORTB &= ~(1U << PORT_PIN_FAN_PWM);
+	DDRB  |=  (1U << PORT_PIN_FAN_PWM);    /* fan pin output, default LOW = fan OFF */
 }
 
 /************* END OF FUCTION DEFINITIONS ************/

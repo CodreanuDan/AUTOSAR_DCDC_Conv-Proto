@@ -64,6 +64,18 @@ uint16_t Pwm_ReadOcr1A(void);
 uint16_t Pwm_ReadOcr1B(void);
 uint16_t Pwm_ReadIcr1(void);
 
+/**
+ * Function name: Timer2_Pwm_Init
+ * @brief Initializes Timer2 in Fast PWM Mode.
+ * Fast PWM, TOP=0xFF, OC2A disconnected 
+ * clk/256 -> 16MHz/(256*256) = 244 Hz.
+ * @param: void
+ * @return: void
+ */
+void Timer2_Pwm_Init(void);
+
+void Pwm_Fan_SetDuty(uint8_t duty_pct);
+uint8_t Pwm_Fan_GetDuty(void);
 
 /************* END OF FUCTION PROTOTYPES ************/
 

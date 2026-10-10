@@ -25,22 +25,25 @@ extern "C" {
  *******************************************************/
 
 /* PWM Output Pins (PORTB) */
-#define PORT_PIN_PWM_OC1A   PB1
-#define PORT_PIN_PWM_OC1B   PB2
+#define PORT_PIN_PWM_OC1A      PB1
+#define PORT_PIN_PWM_OC1B      PB2
 
 /* Relay Output Pins (PORTD) */
-#define PORT_PIN_RELAY_IN   PD4
-#define PORT_PIN_RELAY_OUT  PD5
+#define PORT_PIN_RELAY_IN      PD4
+#define PORT_PIN_RELAY_OUT     PD5
 
 /* KL15 Input/Mirror Pins (PORTD) */
-#define PORT_PIN_KL15_IN       PD2   /* INT0 - requires external 10k pull-down to GND */
+#define PORT_PIN_KL15_IN       PD2      /* INT0 - requires external 10k pull-down to GND */
 #define PORT_PIN_KL15_MIRROR   PD3
 
 /* Coolant tank level inputs, thermometer code, OUT1 = lowest probe */
-#define PORT_PIN_TANK_OUT1   PD6
-#define PORT_PIN_TANK_OUT2   PD7
-#define PORT_PIN_TANK_OUT3   PB0
-#define PORT_PIN_TANK_OUT4   PB4
+#define PORT_PIN_TANK_OUT1     PD6
+#define PORT_PIN_TANK_OUT2     PD7
+#define PORT_PIN_TANK_OUT3     PB0
+#define PORT_PIN_TANK_OUT4     PB4
+
+/* Cooling fan pin PB3 (OC2A Timer 2 Fast PWM) */
+#define PORT_PIN_FAN_PWM       PB3      /* OC2A */
 
 /*******************************************************
  *            START OF VARIABLE DECLARATIONS
