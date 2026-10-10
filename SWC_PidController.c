@@ -11,6 +11,12 @@
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
+
+#define PID_DT_S        0.01f    /* real task period: 10 ms */
+#define FF_GAIN         1.0f     /* start at 1.0 (ideal), raise toward ~1.5 after calibration */
+#define BOOST_OUT_MIN   0.0f
+#define BOOST_OUT_MAX   85.0f    /* below the collapse point; tune from your plot */
+
 typedef struct {
     float Kp;           
     float Ki;           
@@ -24,14 +30,14 @@ typedef struct {
 
 /* Static configuration instance for the DCDC Converter PID loop */
 static PID_Controller g_PidCtrl_PIDConverter = {
-    .Kp = 0.85f,        
-    .Ki = 0.15f,       
-    .Kd = 0.05f,
+    .Kp = 0.85f,
+    .Ki = 1.0f,          /* was 0.15 with dt=0.1; per-second equivalent ~1.5, start lower */
+    .Kd = 0.0f,          /* off for now: Kd/dt amplifies ADC noise at dt = 0.01 */
     .prev_error = 0.0f,
     .integrator = 0.0f,
-    .out_min = 5.0f,    
-    .out_max = 98.0f,   
-    .deadzone = 0.2f    
+    .out_min = -15.0f,   /* trim limits, NOT the duty limits */
+    .out_max =  15.0f,
+    .deadzone = 0.2f
 };
 
 /********************************************************
@@ -136,23 +142,33 @@ void SWC_PidController_Runnable(float v_in, float v_out)
             g_PidCtrl_PIDConverter.prev_error = 0.0f;
         }
         /* Condition C: Target setpoint is higher than input voltage, execute Boost control loop */
-        else if (current_setpoint_volts > v_in)
-        {
-            duty_a = 98; 
-            float pid_output_boost = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, 0.1f);
-            Rte_Write_LastPidOutput((uint8_t)pid_output_boost);
-            float computed_duty_b = 98.0f - pid_output_boost;
-            
-            if (computed_duty_b > 98.0f) computed_duty_b = 98.0f;
-            if (computed_duty_b < 5.0f) computed_duty_b = 5.0f; 
-            
-            duty_b = (uint8_t)computed_duty_b;
-        }
+		else if (current_setpoint_volts > v_in)
+		{
+			duty_a = 98;
+
+			/* Feed-forward: ideal boost duty for this Vin/setpoint, in "output" units */
+			float ff   = FF_GAIN * 98.0f * (1.0f - (v_in / current_setpoint_volts));
+
+			/* PID trim: small correction, limited to +/-15 by the PID struct */
+			float trim = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, PID_DT_S);
+
+			float out = ff + trim;
+			if (out > BOOST_OUT_MAX) out = BOOST_OUT_MAX;
+			if (out < BOOST_OUT_MIN) out = BOOST_OUT_MIN;
+
+			Rte_Write_LastPidOutput((uint8_t)out);     /* total output, not the trim (trim can be negative) */
+
+			float computed_duty_b = 98.0f - out;
+			if (computed_duty_b > 98.0f) computed_duty_b = 98.0f;
+			if (computed_duty_b < 5.0f)  computed_duty_b = 5.0f;
+
+			duty_b = (uint8_t)computed_duty_b;
+		}
         /* Condition D: Target setpoint is lower than input voltage, execute Buck control loop */
         else if (current_setpoint_volts < v_in)
         {
             duty_b = 98; 
-            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.1f);
+            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.01f);
             Rte_Write_LastPidOutput((uint8_t)pid_output_buck);
             float computed_duty_a = 98.0f - pid_output_buck;
             
