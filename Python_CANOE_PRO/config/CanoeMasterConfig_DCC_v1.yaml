@@ -439,6 +439,14 @@ DID_Table:
     default: 1
     size: 1
 
+  - name: "FanDuty"
+    did: "0128"
+    type: "single_spin"
+    min: 0
+    max: 100
+    default: 50
+    size: 1
+
 # 4. DTC Table (Diagnostic Trouble Codes) --> Fault Memory (0xA5-Diag Frame / SID 0x19)
 DTC_Table:
   "0x1A0100":

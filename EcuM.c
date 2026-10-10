@@ -80,6 +80,7 @@ void EcuM_Init(void)
     Adc_Init();
     Timer0_TickInit();
     Timer1_Pwm_Init(Rte_Read_TargetFrequency()); /* Default initial PWM frequency: 100Hz */
+	Timer2_Pwm_Init(); 							 /* Fan Control nitial PWM frequency: 244Hz */
 
     /* 7. Initialize Watchdog Timer (2 seconds timeout) */
     Wdg_Init(WDTO_2S);
@@ -99,6 +100,7 @@ void EcuM_Init(void)
 		 * the TX linger (that's only meaningful coming out of RUN). Park
 		 * directly and go straight to sleep. */
 		Pwm_SetDutyCycle(0U, 0U);
+		Pwm_Fan_SetDuty(0U);
 		Dio_WriteChannel(DIO_CHANNEL_RELAY_IN, STD_LOW);
 		Dio_WriteChannel(DIO_CHANNEL_RELAY_OUT, STD_LOW);
 		s_ecum_state = ECUM_STATE_SLEEP;
@@ -173,6 +175,8 @@ void EcuM_MainFunction(void)
 			}
 			else if ((g_tick_ms - s_ecum_linger_start_tick) >= ECUM_SLEEP_GRACE_MS)
 			{
+				Rte_Write_FanDuty(0U);            /* clear the stale request first */
+				Pwm_Fan_SetDuty(0U);                  /* fan OFF at the end of the after-run */
 				s_ecum_state = ECUM_STATE_SLEEP;
 			}
 			break;

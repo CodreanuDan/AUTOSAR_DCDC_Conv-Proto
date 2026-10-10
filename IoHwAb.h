@@ -160,7 +160,13 @@ void IoHwAb_Kl15_Init(void);
  */
 void IoHwAb_Level_MainFunction(void);
 
-
+/**
+ * Function name: IoHwAb_Fan_MainFunction
+ * @brief Sets duty cycle for PWM on Timer 2 with output PB3 (Fan Control).
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Fan_MainFunction(void); 
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus

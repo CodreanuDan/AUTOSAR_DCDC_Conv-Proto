@@ -81,5 +81,7 @@ void Rte_Write_CoolantLevelRaw(uint8_t val);
 uint8_t Rte_Read_CoolantLevelRaw(void);
 void Rte_Write_LevelSensorValid(uint8_t val);  
 uint8_t Rte_Read_LevelSensorValid(void);
+void Rte_Write_FanDuty(uint8_t val);
+uint8_t Rte_Read_FanDuty(void);
 
 #endif /* RTE_H */

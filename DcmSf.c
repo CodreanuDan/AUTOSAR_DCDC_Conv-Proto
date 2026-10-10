@@ -139,6 +139,10 @@ static void Dcm_Cb_Read_CycCool(uint8_t *out)       { out[0] = Com_GetCyclicCool
 static void Dcm_Cb_Write_CycCool(const uint8_t *in) { Com_SetCyclicCoolUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
+static void Dcm_Cb_Read_FanDuty (uint8_t *d)       { d[0] = IoHwAb_Fan_GetDuty(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_FanDuty(const uint8_t *d) { Rte_Write_FanDuty(d[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
 static void Dcm_Cb_Write_Kl15Override(const uint8_t *data_in) { IoHwAb_Kl15_ForceState(data_in[0] != 0U); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
@@ -162,7 +166,8 @@ static const Dcm_DidConfigType s_dcm_did_table[] = {
     { 0x0109U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycAct,          Dcm_Cb_Write_CycAct,         NULL,  			   NULL},
     { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL,  			   NULL},
 	{ 0x010AU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                        Dcm_Cb_Write_Kl15Override,   NULL,               NULL},
-	{ 0x0127U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycCool,         Dcm_Cb_Write_CycCool,        NULL,               NULL}
+	{ 0x0127U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycCool,         Dcm_Cb_Write_CycCool,        NULL,               NULL},
+	{ 0x0128U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_FanDuty,         Dcm_Cb_Write_FanDuty,        NULL,               NULL }
 };
 
 #define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))

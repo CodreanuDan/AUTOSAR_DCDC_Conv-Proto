@@ -110,6 +110,43 @@ uint16_t Pwm_ReadIcr1(void)
     return ICR1;
 }
 
+/**
+ * Function name: Timer2_Pwm_Init
+ * @brief Initializes Timer2 in Fast PWM Mode.
+ * Fast PWM, TOP=0xFF, OC2A disconnected 
+ * clk/256 -> 16MHz/(256*256) = 244 Hz.
+ * @param: void
+ * @return: void
+ */
+void Timer2_Pwm_Init(void)
+{
+	OCR2A  = 0U;
+	TCCR2A = (1U << WGM21) | (1U << WGM20);   /* Fast PWM, TOP=0xFF, OC2A disconnected */
+	TCCR2B = (1U << CS22) | (1U << CS21);     /* clk/256 -> 16MHz/(256*256) = 244 Hz */
+}
+
+void Pwm_Fan_SetDuty(uint8_t duty_pct)
+{
+	if (duty_pct > 100U) { duty_pct = 100U; }
+
+	if (duty_pct == 0U)
+	{
+		TCCR2A &= (uint8_t)~(1U << COM2A1);   /* disconnect OC2A */
+        PORTB  &= (uint8_t)~(1U << PB3);      /* pin LOW, no 1/256 spike */
+        OCR2A   = 0U;
+	}
+	else
+	{
+		OCR2A   = (uint8_t)(((uint16_t)duty_pct * 255U + 50U) / 100U);
+        TCCR2A |= (1U << COM2A1);             /* non-inverting PWM */
+	}
+}
+
+uint8_t Pwm_Fan_GetDuty(void)
+{
+    if ((TCCR2A & (1U << COM2A1)) == 0U) { return 0U; }
+    return (uint8_t)(((uint16_t)OCR2A * 100U + 127U) / 255U);
+}
 /************* END OF FUCTION DEFINITIONS ************/
 
 

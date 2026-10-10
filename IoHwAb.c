@@ -353,4 +353,14 @@ void IoHwAb_Level_MainFunction(void)
 	}
 }
 
+void    IoHwAb_Fan_MainFunction(void) 
+{ 
+	Pwm_Fan_SetDuty(Rte_Read_FanDuty()); 
+
+}
+uint8_t IoHwAb_Fan_GetDuty(void)      
+{ 
+	return Pwm_Fan_GetDuty(); 
+}
+
 /************* END OF FUNCTION DEFINITIONS ************/
