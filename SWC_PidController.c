@@ -13,9 +13,14 @@
  *******************************************************/
 
 #define PID_DT_S        0.01f    /* real task period: 10 ms */
-#define FF_GAIN         1.0f     /* start at 1.0 (ideal), raise toward ~1.5 after calibration */
+
+#define BOOST_FF_GAIN         1.0f     /* start at 1.0 (ideal), raise toward ~1.5 after calibration */
 #define BOOST_OUT_MIN   0.0f
 #define BOOST_OUT_MAX   85.0f    /* below the collapse point; tune from your plot */
+
+#define BUCK_FF_GAIN    1.0f     /* calibrate separately from boost */
+#define BUCK_OUT_MIN    0.0f
+#define BUCK_OUT_MAX    93.0f    /* duty_a never below 5 % */
 
 typedef struct {
     float Kp;           
@@ -118,12 +123,22 @@ void SWC_PidController_Runnable(float v_in, float v_out)
     bool pid_disabled = Rte_Read_PidDisableFlag();
     uint16_t target_setpoint = Rte_Read_PidTargetSetpoint();
     float current_setpoint_volts = (float)target_setpoint;
+    static uint8_t s_prev_mode = 0U;            /* 0 none, 1 boost, 2 buck */
 
     /* 3. Execute PID controller loop if enabled */
     if (pid_disabled == FALSE)
     {
         uint8_t duty_a = 98;
         uint8_t duty_b = 98;
+
+        /* Reset the PID state whenever the control mode changes */
+        uint8_t mode = (current_setpoint_volts > v_in) ? 1U : 2U;
+        if (mode != s_prev_mode)
+        {
+            g_PidCtrl_PIDConverter.integrator = 0.0f;
+            g_PidCtrl_PIDConverter.prev_error = 0.0f;
+            s_prev_mode = mode;
+        }
 
         /* Condition A: Output voltage is critically low, bypass control and saturate duty cycles */
         if (v_out < 2.0f) 
@@ -147,7 +162,7 @@ void SWC_PidController_Runnable(float v_in, float v_out)
 			duty_a = 98;
 
 			/* Feed-forward: ideal boost duty for this Vin/setpoint, in "output" units */
-			float ff   = FF_GAIN * 98.0f * (1.0f - (v_in / current_setpoint_volts));
+			float ff   = BOOST_FF_GAIN * 98.0f * (1.0f - (v_in / current_setpoint_volts));
 
 			/* PID trim: small correction, limited to +/-15 by the PID struct */
 			float trim = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, current_setpoint_volts, v_out, PID_DT_S);
@@ -165,22 +180,33 @@ void SWC_PidController_Runnable(float v_in, float v_out)
 			duty_b = (uint8_t)computed_duty_b;
 		}
         /* Condition D: Target setpoint is lower than input voltage, execute Buck control loop */
-        else if (current_setpoint_volts < v_in)
-        {
-            duty_b = 98; 
-            float pid_output_buck = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, 0.01f);
-            Rte_Write_LastPidOutput((uint8_t)pid_output_buck);
-            float computed_duty_a = 98.0f - pid_output_buck;
-            
-            if (computed_duty_a > 98.0f) computed_duty_a = 98.0f;
-            if (computed_duty_a < 5.0f) computed_duty_a = 5.0f;
-            
-            duty_a = (uint8_t)computed_duty_a;
-        }
+		else if (current_setpoint_volts < v_in)
+		{
+			duty_b = 98;
+
+			float ff   = BUCK_FF_GAIN * 98.0f * (1.0f - (current_setpoint_volts / v_in));
+			float trim = PidCtrl_PIDCompute(&g_PidCtrl_PIDConverter, v_out, current_setpoint_volts, PID_DT_S);  /* note: swapped */
+
+			float out = ff + trim;
+			if (out > BUCK_OUT_MAX) out = BUCK_OUT_MAX;
+			if (out < BUCK_OUT_MIN) out = BUCK_OUT_MIN;
+
+			Rte_Write_LastPidOutput((uint8_t)out);
+
+			float computed_duty_a = 98.0f - out;
+			if (computed_duty_a > 98.0f) computed_duty_a = 98.0f;
+			if (computed_duty_a < 5.0f)  computed_duty_a = 5.0f;
+
+			duty_a = (uint8_t)computed_duty_a;
+		}
 
         /* 4. Write final computed duty cycles exclusively through RTE ports */
         Rte_Write_DutyA(duty_a);
         Rte_Write_DutyB(duty_b);
+    }
+    else
+    {
+        s_prev_mode = 0U;   /* PID disabled: force a clean start when it is re-enabled */
     }
 }
 /************* END OF FUNCTION DEFINITIONS ************/
