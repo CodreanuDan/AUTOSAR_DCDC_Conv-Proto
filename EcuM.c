@@ -23,6 +23,8 @@
 #include "DcmSf.h"
 #include "Rte.h"
 #include "IoHwAb.h"
+#include "I2cSf.h"
+#include "Sht21Sf.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -85,10 +87,14 @@ void EcuM_Init(void)
     /* 7. Initialize Watchdog Timer (2 seconds timeout) */
     Wdg_Init(WDTO_2S);
 
-    /* 8. Enable Global Interrupts */
+	/* 8. Initialize I2C Peripheral (and its dependecies: SHT21)  */
+	I2c_Init();
+	Sht21_Init();
+
+    /* 9. Enable Global Interrupts */
     sei();
 
-    /* 9. Transition to RUN state */
+    /* 10. Transition to RUN state */
 	if (kl15_initial == true)
 	{
 		s_ecum_state = ECUM_STATE_RUN;

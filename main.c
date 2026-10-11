@@ -39,6 +39,7 @@ void peripheral_loop() {
 #include "DcmSf.h"
 #include "AdcSf.h"
 #include "GptSf.h"
+#include "Sht21Sf.h"
 
 /* ASW Runnable APIs */
 #include "SWC_SensorMeasurement.h"
@@ -57,7 +58,9 @@ void App_Task_10ms(void)
 		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
 		IoHwAb_Sensor_MainFunction();
 		/* 2. BSW: Control fan with duty cycle on Timer 2 Fast PWM */
-		IoHwAb_Fan_MainFunction();        
+		IoHwAb_Fan_MainFunction();  
+		/* 3. BSW:  SHT21 Sensor Temp & Hum */
+		IoHwAb_Sht21_MainFunction();
 	}
 	if (st == ECUM_STATE_RUN) 
 	{

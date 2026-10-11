@@ -83,5 +83,11 @@ void Rte_Write_LevelSensorValid(uint8_t val);
 uint8_t Rte_Read_LevelSensorValid(void);
 void Rte_Write_FanDuty(uint8_t val);
 uint8_t Rte_Read_FanDuty(void);
+void Rte_Write_AmbTemp(int16_t val);
+int16_t Rte_Read_AmbTemp(void);
+void Rte_Write_AmbHumidity(uint16_t val);
+uint16_t Rte_Read_AmbHumidity(void);
+void Rte_Write_Sht21Valid(uint8_t val);
+uint8_t Rte_Read_Sht21Valid(void);
 
 #endif /* RTE_H */

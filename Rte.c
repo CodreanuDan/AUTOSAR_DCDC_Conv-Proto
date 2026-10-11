@@ -40,6 +40,9 @@ static uint8_t RTE_VAR_CoolantLevel      = 0U;
 static uint8_t RTE_VAR_CoolantLevelRaw   = 0U;
 static uint8_t RTE_VAR_LevelSensorValid  = 0U;
 static uint8_t RTE_VAR_FanDuty = 0;  
+static uint8_t RTE_VAR_AmbTemp = 0;
+static uint8_t RTE_VAR_AmbHumidity = 0;
+static uint8_t RTE_VAR_Sht21Valid = 0;
 
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
@@ -352,4 +355,34 @@ void Rte_Write_FanDuty(uint8_t val)
 uint8_t Rte_Read_FanDuty(void)
 {
 	return RTE_VAR_FanDuty;
+}
+
+void Rte_Write_AmbTemp(int16_t val)
+{
+	RTE_VAR_AmbTemp = val;
+}
+
+int16_t Rte_Read_AmbTemp(void)
+{
+	return RTE_VAR_AmbTemp;
+}
+
+void Rte_Write_AmbHumidity(uint16_t val)
+{
+	RTE_VAR_AmbHumidity = val;
+}
+
+uint16_t Rte_Read_AmbHumidity(void)
+{
+	return RTE_VAR_AmbHumidity;
+}
+
+void Rte_Write_Sht21Valid(uint8_t val)
+{
+	RTE_VAR_Sht21Valid = val;
+}
+
+uint8_t Rte_Read_Sht21Valid(void)
+{
+	return RTE_VAR_Sht21Valid;
 }

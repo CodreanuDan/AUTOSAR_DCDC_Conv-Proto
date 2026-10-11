@@ -353,14 +353,23 @@ void IoHwAb_Level_MainFunction(void)
 	}
 }
 
-void    IoHwAb_Fan_MainFunction(void) 
+void IoHwAb_Fan_MainFunction(void) 
 { 
 	Pwm_Fan_SetDuty(Rte_Read_FanDuty()); 
 
 }
+
 uint8_t IoHwAb_Fan_GetDuty(void)      
 { 
 	return Pwm_Fan_GetDuty(); 
+}
+
+void IoHwAb_Sht21_MainFunction(void)
+{
+   int16_t t; uint16_t rh;
+   Sht21_MainFunction();
+   Sht21_GetData(&t, &rh);
+   Rte_Write_AmbTemp(t); Rte_Write_AmbHumidity(rh); Rte_Write_Sht21Valid(Sht21_IsValid());
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

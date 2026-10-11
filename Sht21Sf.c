@@ -20,7 +20,8 @@
  *  failures the data is declared INVALID (the cooling logic will then use
  *  the fail-safe fan speed). The first fully good cycle makes it valid again.
  ******************************************************************************/
-#include <util/atomic.h>
+#include <avr/io.h>            /* SREG */
+#include <avr/interrupt.h>     /* cli() */
 #include "StdTypes.h"
 #include "I2cSf.h"
 #include "GptSf.h"             /* extern volatile uint32_t g_tick_ms */
@@ -71,15 +72,17 @@ static uint16_t        s_rh_c100;            /* published humidity            */
 static uint8_t         s_valid = FALSE;      /* published validity            */
 static uint8_t         s_fail_cnt;           /* consecutive failure counter   */
 
-/* Atomic read of the 32-bit millisecond counter (ISR updates it; an AVR
- * needs several instructions to read 4 bytes -> could tear without this).   */
+/* Atomic read of the 32-bit ms counter (C89-safe, no ATOMIC_BLOCK).
+ * An AVR reads 4 bytes in several instructions, so the tick ISR could update
+ * g_tick_ms halfway through. We disable interrupts for the copy and then
+ * restore the previous SREG (so it is also safe if the I-flag was already 0). */
 static uint32_t Tick(void)
 {
     uint32_t t;
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-    {
-        t = g_tick_ms;
-    }
+    uint8_t  sreg = SREG;      /* remember interrupt state */
+    cli();
+    t = g_tick_ms;
+    SREG = sreg;               /* restore it */
     return t;
 }
 

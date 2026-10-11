@@ -167,6 +167,15 @@ void IoHwAb_Level_MainFunction(void);
  * @return: void
  */
 void IoHwAb_Fan_MainFunction(void); 
+
+/**
+ * Function name: IoHwAb_Sht21_MainFunction
+ * @brief Interface for communication with SHT21 Sensor (I2C).
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Sht21_MainFunction(void);
+
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus

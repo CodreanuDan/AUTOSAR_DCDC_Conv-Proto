@@ -565,15 +565,17 @@ void Com_Send_DiagFrame_CoolantData(void)
     uint8_t i;
     uint8_t checksum = 0U;
     uint8_t payload[8];
+	int16_t  temp = Rte_Read_AmbTemp();       /* 0.01 degC, signed: 2712 = 27.12 C */
+    uint16_t hum  = Rte_Read_AmbHumidity();   /* 0.01 %RH, unsigned: 8000 = 80.00 % */
 
-    payload[0] = 0U;                              /* Temp_C_ low  (SHT21 not wired yet) */
-    payload[1] = 0U;                              /* Temp_C_ high */
-    payload[2] = 0U;                              /* Hum_Pct_ low */
-    payload[3] = 0U;                              /* Hum_Pct_ high */
+    payload[0] = (uint8_t)((uint16_t)temp & 0xFFU);          /* Temp low  */
+    payload[1] = (uint8_t)(((uint16_t)temp >> 8) & 0xFFU);   /* Temp high */
+    payload[2] = (uint8_t)(hum & 0xFFU);                     /* Hum low   */
+    payload[3] = (uint8_t)((hum >> 8) & 0xFFU);              /* Hum high  */
     payload[4] = Rte_Read_CoolantLevel();
     payload[5] = Rte_Read_CoolantLevelRaw();
     payload[6] = (Rte_Read_LevelSensorValid() != 0U) ? 0x02U : 0x00U;
-    payload[7] = 0U;
+    payload[7] = (Rte_Read_Sht21Valid() != 0U) ? 0x01U : 0x00U;  /* SHT21: 0 / 1 */
 
     Uart_TxByte(0xA6U);
     checksum += 0xA6U;
