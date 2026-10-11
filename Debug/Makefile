@@ -61,6 +61,10 @@ LD=avr-gcc
 #        C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/Arduino Uno/UartSf.c
 #     C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/ARDUINO UNO/Debug/WdgSf.o: TOOL=CC
 #        C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/Arduino Uno/WdgSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/ARDUINO UNO/Debug/I2cSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/Arduino Uno/I2cSf.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/ARDUINO UNO/Debug/Sht21Sf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/f444544292c346a4b53ee9797f0ce7bb/Arduino Uno/Sht21Sf.c
 
 # Build tree:
 all:	Debug
@@ -68,8 +72,8 @@ all:	Debug
 Debug:	Debug.elf
 	avr-size "Debug.ELF"
 
-Debug.elf:	main.o AdcSf.o ComSf.o DcmSf.o DemSf.o DioSf.o EcuM.o GptSf.o IoHwAb.o NvM.o PduR.o PortSf.o PwmSf.o Rte.o SWC_PidController.o SWC_SensorMeasurement.o UartSf.o WdgSf.o 
-	$(LD) $(LDFLAGS)  -o "./Debug.elf" "main.o" "AdcSf.o" "ComSf.o" "DcmSf.o" "DemSf.o" "DioSf.o" "EcuM.o" "GptSf.o" "IoHwAb.o" "NvM.o" "PduR.o" "PortSf.o" "PwmSf.o" "Rte.o" "SWC_PidController.o" "SWC_SensorMeasurement.o" "UartSf.o" "WdgSf.o" arduino/arduino.a -lm
+Debug.elf:	main.o AdcSf.o ComSf.o DcmSf.o DemSf.o DioSf.o EcuM.o GptSf.o IoHwAb.o NvM.o PduR.o PortSf.o PwmSf.o Rte.o SWC_PidController.o SWC_SensorMeasurement.o UartSf.o WdgSf.o I2cSf.o Sht21Sf.o 
+	$(LD) $(LDFLAGS)  -o "./Debug.elf" "main.o" "AdcSf.o" "ComSf.o" "DcmSf.o" "DemSf.o" "DioSf.o" "EcuM.o" "GptSf.o" "IoHwAb.o" "NvM.o" "PduR.o" "PortSf.o" "PwmSf.o" "Rte.o" "SWC_PidController.o" "SWC_SensorMeasurement.o" "UartSf.o" "WdgSf.o" "I2cSf.o" "Sht21Sf.o" arduino/arduino.a -lm
 	avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
 	avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Debug.elf" "./Debug.eep" || exit 0 
 
@@ -131,6 +135,12 @@ UartSf.o:	../UartSf.c
 WdgSf.o:	../WdgSf.c 
 	$(CC) $(CCFLAGS)  -o "WdgSf.o" -c "../WdgSf.c"
 
+I2cSf.o:	../I2cSf.c 
+	$(CC) $(CCFLAGS)  -o "I2cSf.o" -c "../I2cSf.c"
+
+Sht21Sf.o:	../Sht21Sf.c 
+	$(CC) $(CCFLAGS)  -o "Sht21Sf.o" -c "../Sht21Sf.c"
+
 # bootloader - attach bootloader to the firmware
 bootloader:
 	avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
@@ -156,6 +166,8 @@ tidy:
 	rm -rf ./SWC_SensorMeasurement.d
 	rm -rf ./UartSf.d
 	rm -rf ./WdgSf.d
+	rm -rf ./I2cSf.d
+	rm -rf ./Sht21Sf.d
 	-make -f arduino/Makefile tidy
 
 # cleanup - delete all generated files
@@ -180,4 +192,6 @@ clean:	tidy
 	rm -rf SWC_SensorMeasurement.o
 	rm -rf UartSf.o
 	rm -rf WdgSf.o
+	rm -rf I2cSf.o
+	rm -rf Sht21Sf.o
 	-make -f arduino/Makefile clean
