@@ -432,7 +432,7 @@ DID_Table:
     default: 1
     size: 1
 
-  - name: "Kl15Stat"
+  - name: "CycCoolUpdt"
     did: "010A"
     type: "single_spin"
     min: 0
@@ -440,7 +440,15 @@ DID_Table:
     default: 1
     size: 1
 
-  - name: "CycCoolUpdt"
+  - name: "CycFanUpdt"
+    did: "010B"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 1
+    size: 1
+
+  - name: "Kl15Stat"
     did: "0127"
     type: "single_spin"
     min: 0
@@ -448,8 +456,16 @@ DID_Table:
     default: 1
     size: 1
 
-  - name: "FanDuty"
+  - name: "FanDutyMode"
     did: "0128"
+    type: "single_spin"
+    min: 0
+    max: 1
+    default: 0
+    size: 1
+
+  - name: "FanDutyManual"
+    did: "0129"
     type: "single_spin"
     min: 0
     max: 100
