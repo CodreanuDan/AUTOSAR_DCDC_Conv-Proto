@@ -30,6 +30,7 @@ static uint8_t s_alive_counter_DiagFrame_PID             = 0U;
 static uint8_t s_alive_counter_DiagFrame_Act             = 0U;
 static uint8_t s_alive_counter_DiagFrame_DTC             = 0U;
 static uint8_t s_alive_counter_DiagFrame_Cool            = 0U;
+static uint8_t s_alive_counter_DiagFrame_Fan             = 0U;
 
 /* Static Cyclic Transmission Flags (Controlled via Setters) */
 static uint8_t s_cyclic_conv_updates  = 1U; /* DID 0x0110 CycCnvUpdt: Default enabled */
@@ -37,8 +38,8 @@ static uint8_t s_cyclic_pwm_updates   = 1U; /* DID 0x0108 CycPwmUpdt: Default en
 static uint8_t s_cyclic_pid_updates   = 1U; /* DID 0x0107 CycPidUpdt: Default enabled */
 static uint8_t s_cyclic_act_updates   = 1U; /* DID 0x0109 CycActUpdt: Default enabled */
 static uint8_t s_cyclic_fault_updates = 0U; /* DID 0x0106 CycDemUpdt: Default disabled */
-static uint8_t s_cyclic_cool_updates = 1U;  /* DID 0x0127 CycCoolUpdt: Default enabled */
-
+static uint8_t s_cyclic_cool_updates  = 1U; /* DID 0x010A CycCoolUpdt: Default enabled */
+static uint8_t s_cyclic_fan_updates   = 1U; /* DID 0x010B CycCoolUpdt: Default enabled */
 
 /*******************************************************
  *      CYCLIC CONTROL SETTERS & GETTERS FOR DCM
@@ -60,6 +61,10 @@ uint8_t Com_GetCyclicFaultUpdates(void)         { return s_cyclic_fault_updates;
 
 void Com_SetCyclicCoolUpdates(uint8_t enable) { s_cyclic_cool_updates = enable; }
 uint8_t Com_GetCyclicCoolUpdates(void)         { return s_cyclic_cool_updates; }
+
+void Com_SetCyclicFanUpdates(uint8_t enable) { s_cyclic_fan_updates = enable; }
+uint8_t Com_GetCyclicFanUpdates(void)         { return s_fan_cool_updates; }
+
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
  *******************************************************/
@@ -579,6 +584,44 @@ void Com_Send_DiagFrame_CoolantData(void)
 
     Uart_TxByte(0xA6U);
     checksum += 0xA6U;
+    for (i = 0U; i < 8U; i++)
+    {
+        Uart_TxByte(payload[i]);
+        checksum += payload[i];
+    }
+    Uart_TxByte(s_alive_counter_DiagFrame_Cool);
+    checksum += s_alive_counter_DiagFrame_Cool;
+    Uart_TxByte(checksum);
+    Uart_TxByte(0x0DU);
+
+    s_alive_counter_DiagFrame_Cool = (s_alive_counter_DiagFrame_Cool + 1U) % 16U;
+}
+
+/**
+ * Function name: Com_Send_DiagFrame_FanData
+ * @brief Transmits fan state, fan pwm, fan state (Header 0xA7).
+ * @param: void
+ * @return: void
+ */
+void Com_Send_DiagFrame_FanData(void)
+{
+    uint8_t i;
+    uint8_t checksum = 0U;
+    uint8_t payload[8];
+	int16_t  temp = Rte_Read_AmbTemp();       /* 0.01 degC, signed: 2712 = 27.12 C */
+    uint16_t hum  = Rte_Read_AmbHumidity();   /* 0.01 %RH, unsigned: 8000 = 80.00 % */
+
+    payload[0] = (uint8_t)((uint16_t)temp & 0xFFU);          /* Temp low  */
+    payload[1] = (uint8_t)(((uint16_t)temp >> 8) & 0xFFU);   /* Temp high */
+    payload[2] = (uint8_t)(hum & 0xFFU);                     /* Hum low   */
+    payload[3] = (uint8_t)((hum >> 8) & 0xFFU);              /* Hum high  */
+    payload[4] = Rte_Read_CoolantLevel();
+    payload[5] = Rte_Read_CoolantLevelRaw();
+    payload[6] = (Rte_Read_LevelSensorValid() != 0U) ? 0x02U : 0x00U;
+    payload[7] = (Rte_Read_Sht21Valid() != 0U) ? 0x01U : 0x00U;  /* SHT21: 0 / 1 */
+
+    Uart_TxByte(0xA7U);
+    checksum += 0xA7U;
     for (i = 0U; i < 8U; i++)
     {
         Uart_TxByte(payload[i]);

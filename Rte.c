@@ -40,8 +40,8 @@ static uint8_t RTE_VAR_CoolantLevel      = 0U;
 static uint8_t RTE_VAR_CoolantLevelRaw   = 0U;
 static uint8_t RTE_VAR_LevelSensorValid  = 0U;
 static uint8_t RTE_VAR_FanDuty = 0;  
-static uint8_t RTE_VAR_AmbTemp = 0;
-static uint8_t RTE_VAR_AmbHumidity = 0;
+static int16_t  RTE_VAR_AmbTemp = 0;
+static uint16_t RTE_VAR_AmbHumidity = 0;
 static uint8_t RTE_VAR_Sht21Valid = 0;
 
 /* =====================================================================

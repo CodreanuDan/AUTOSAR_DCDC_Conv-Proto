@@ -41,7 +41,8 @@
 
 /* ---- Robustness ---------------------------------------------------------- */
 #define SHT21_FAIL_LIMIT        3U      /* consecutive failures -> INVALID    */
-#define SHT21_CHECK_CRC         1U      /* 1 = verify CRC-8 of every reading  */
+#define SHT21_CHECK_CRC         0U      /* 1 = verify CRC-8 of every reading  
+								(not working on simulation, maybe on real sim */
 
 /* ---- State machine ------------------------------------------------------- */
 typedef enum

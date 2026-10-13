@@ -21,13 +21,10 @@
 // Peripheral Constructors
 CPU &cpu = Cpu;
 
-void peripheral_setup () {
-}
+void peripheral_setup () {}
+void peripheral_loop() {}
 
-void peripheral_loop() {
-}
 //---CONFIG_END---
-
 
 /* Includes */
 #include <avr/io.h>
@@ -54,7 +51,7 @@ void App_Task_50ms (void );
 void App_Task_100ms (void );
 void App_Task_500ms (void );
 int main (void );
-#line 47
+#line 44
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -70,8 +67,6 @@ void App_Task_10ms(void)
 		IoHwAb_Sensor_MainFunction();
 		/* 2. BSW: Control fan with duty cycle on Timer 2 Fast PWM */
 		IoHwAb_Fan_MainFunction();  
-		/* 3. BSW:  SHT21 Sensor Temp & Hum */
-		IoHwAb_Sht21_MainFunction();
 	}
 	if (st == ECUM_STATE_RUN) 
 	{
@@ -123,6 +118,8 @@ void App_Task_100ms(void)
 		Adc_StartScan();
 		/* TRIGGER: Trigger next tank level scan cycle*/
 		IoHwAb_Level_MainFunction();
+		/* TRIGGER: BSW:  SHT21 Sensor Temp & Hum */
+		IoHwAb_Sht21_MainFunction();
 	}
 }
 
