@@ -312,6 +312,62 @@ Frame_Table:
         size: 1
         scaling: "direct"
 
+  - header_hex: "A7"
+    name: "BO_fanInfo_1_"
+    color: "#76FF03"
+    description: "Fan duty, mode, cooling state"
+    length: 12
+    signals:
+      - name: "SG_fanInfo_1_DutyApplied_"
+        unit: "%"
+        color: "#76FF03"
+        byte_offset: 1
+        size: 1
+        scaling: "direct" 
+      - name: "SG_fanInfo_1_DutyReq_"
+        unit: "%"
+        color: "#ffd740"
+        byte_offset: 2
+        size: 1
+        scaling: "direct" 
+      - name: "SG_fanInfo_1_Mode_"
+        unit: "Flags"
+        color: "#40c4ff"
+        byte_offset: 3
+        size: 1
+        value_table: 
+          0: "AUTO"
+          1: "MANUAL" 
+        scaling: "direct"
+      - name: "SG_fanInfo_1_CoolState_"
+        unit: "Flags"
+        color: "#ff9800"
+        byte_offset: 4
+        size: 1
+        value_table: 
+          0: "OFF"
+          1: "RUN"
+          2: "AFTERRUN"
+          3: "FAILSAFE" 
+        scaling: "direct"
+      - name: "SG_fanInfo_1_Flags_"
+        unit: "Flags"
+        color: "#7c4dff"
+        byte_offset: 5
+        size: 1
+        value_table: 
+          0: "NONE"
+          1: "SHT_OK"
+          2: "AFTERRUN"
+          3: "SHT_OK+AFTERRUN" 
+        scaling: "direct"
+      - name: "SG_fanInfo_1_AliveCt__"
+        unit: "Ct" 
+        color: "#ff9800"
+        byte_offset: 9
+        size: 1
+        scaling: "direct" 
+
 # 2. UDS Available Routines
 Routine_Table:
   - name: "BoostPWMTest"
@@ -456,7 +512,7 @@ DID_Table:
     default: 1
     size: 1
 
-  - name: "FanDutyMode"
+  - name: "FanMode"
     did: "0128"
     type: "single_spin"
     min: 0
@@ -464,7 +520,7 @@ DID_Table:
     default: 0
     size: 1
 
-  - name: "FanDutyManual"
+  - name: "FanDuty"
     did: "0129"
     type: "single_spin"
     min: 0
