@@ -143,10 +143,6 @@ static void Dcm_Cb_Read_CycFan(uint8_t *out)       { out[0] = Com_GetCyclicFanUp
 static void Dcm_Cb_Write_CycFan(const uint8_t *in) { Com_SetCyclicFanUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
-static void Dcm_Cb_Read_FanDuty (uint8_t *d)       { d[0] = IoHwAb_Fan_GetDuty(); } /* READ Diag Service: RDID 0x22*/
-static void Dcm_Cb_Write_FanDuty(const uint8_t *d) { Rte_Write_FanDuty(d[0]); } /* WRITE Diag Service: WDID 0x2E */
-/* ---------------------------------------- */
-
 static void Dcm_Cb_Read_FanMode (uint8_t *d)       { d[0] = Rte_Read_FanMode(); } /* READ Diag Service: RDID 0x22*/
 static void Dcm_Cb_Write_FanMode(const uint8_t *d) { Rte_Write_FanMode((d[0] != 0U) ? 1U : 0U); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */

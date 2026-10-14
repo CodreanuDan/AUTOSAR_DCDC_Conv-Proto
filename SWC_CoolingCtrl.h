@@ -3,6 +3,7 @@
 #define SWC_COOLINGCTRL_H
 
 #include "StdTypes.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

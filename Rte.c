@@ -392,31 +392,31 @@ uint8_t Rte_Read_Sht21Valid(void)
 
 void Rte_Write_FanMode(uint8_t val) 
 {
-
+	RTE_VAR_FanMode = val;
 }
 
 uint8_t Rte_Read_FanMode(void)
 {
-
+	return RTE_VAR_FanMode;
 }
 
 void Rte_Write_FanManualDuty(uint8_t val)
 {
-
+	RTE_VAR_FanManualDuty = val;
 }
 
 uint8_t Rte_Read_FanManualDuty(void)
 {
-
+	return RTE_VAR_FanManualDuty;
 }
 
 void Rte_Write_CoolState(uint8_t val) 
 {
-
+	RTE_VAR_CoolState = val;
 }
    
 uint8_t Rte_Read_CoolState(void)
 {
-
+	return RTE_VAR_CoolState;
 }
 

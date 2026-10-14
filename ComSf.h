@@ -47,6 +47,9 @@ uint8_t Com_GetCyclicFaultUpdates(void);
 
 void Com_SetCyclicCoolUpdates(uint8_t enable);
 uint8_t Com_GetCyclicCoolUpdates(void);
+
+void    Com_SetCyclicFanUpdates(uint8_t enable);
+uint8_t Com_GetCyclicFanUpdates(void);
      
 /**
  * Function name: Com_MainFunction_Rx
