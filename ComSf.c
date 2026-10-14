@@ -63,7 +63,7 @@ void Com_SetCyclicCoolUpdates(uint8_t enable) { s_cyclic_cool_updates = enable; 
 uint8_t Com_GetCyclicCoolUpdates(void)         { return s_cyclic_cool_updates; }
 
 void Com_SetCyclicFanUpdates(uint8_t enable) { s_cyclic_fan_updates = enable; }
-uint8_t Com_GetCyclicFanUpdates(void)         { return s_fan_cool_updates; }
+uint8_t Com_GetCyclicFanUpdates(void)         { return s_cyclic_fan_updates; }
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -155,7 +155,9 @@ void Com_MainFunction_Tx(void)
     static uint16_t timer_pid_ms   = 0U;
     static uint16_t timer_act_ms   = 0U;
     static uint16_t timer_fault_ms = 0U;
-	static uint16_t timer_cool_ms = 0U;      
+	static uint16_t timer_cool_ms = 0U;    
+	static uint16_t timer_fan_ms = 0U;   
+
                  
     /* Base task call interval: 10ms */
     timer_adc_ms   += 10U;
@@ -164,6 +166,7 @@ void Com_MainFunction_Tx(void)
     timer_act_ms   += 10U;
     timer_fault_ms += 10U;
 	timer_cool_ms += 10U;   
+	timer_fan_ms += 10U;  
 
     /* 1. Send ADC Monitoring Frame (0xAA) every 50ms if cyclic updates enabled via DID 0x0110 (downscaled x5 times to match new 50ms task: 50ms -> 10ms) */
     //if ((s_cyclic_conv_updates  != 0U) && (timer_adc_ms >= 10U))
@@ -211,6 +214,13 @@ void Com_MainFunction_Tx(void)
 	{
 		timer_cool_ms = 0U;
 		Com_Send_DiagFrame_CoolantData();
+	}
+
+	/* 7. Fan frame (0xA7), 40 units = 200 ms real */
+	if ((s_cyclic_fan_updates != 0U) && (timer_fan_ms >= 40U))
+	{
+		timer_fan_ms = 0U;
+		Com_Send_DiagFrame_FanData();
 	}
 }
 
@@ -607,32 +617,25 @@ void Com_Send_DiagFrame_FanData(void)
 {
     uint8_t i;
     uint8_t checksum = 0U;
-    uint8_t payload[8];
-	int16_t  temp = Rte_Read_AmbTemp();       /* 0.01 degC, signed: 2712 = 27.12 C */
-    uint16_t hum  = Rte_Read_AmbHumidity();   /* 0.01 %RH, unsigned: 8000 = 80.00 % */
+    uint8_t payload[8] = {0U};
 
-    payload[0] = (uint8_t)((uint16_t)temp & 0xFFU);          /* Temp low  */
-    payload[1] = (uint8_t)(((uint16_t)temp >> 8) & 0xFFU);   /* Temp high */
-    payload[2] = (uint8_t)(hum & 0xFFU);                     /* Hum low   */
-    payload[3] = (uint8_t)((hum >> 8) & 0xFFU);              /* Hum high  */
-    payload[4] = Rte_Read_CoolantLevel();
-    payload[5] = Rte_Read_CoolantLevelRaw();
-    payload[6] = (Rte_Read_LevelSensorValid() != 0U) ? 0x02U : 0x00U;
-    payload[7] = (Rte_Read_Sht21Valid() != 0U) ? 0x01U : 0x00U;  /* SHT21: 0 / 1 */
+	payload[0] = Pwm_Fan_GetDuty();                 /* applied duty (Timer2 OCR2A), % */
+    payload[1] = Rte_Read_FanDuty();                /* duty requested by the SWC, % */
+    payload[2] = Rte_Read_FanMode();                /* 0 auto / 1 manual */
+    payload[3] = Rte_Read_CoolState();              /* 0 OFF, 1 RUN, 2 AFTERRUN, 3 FAILSAFE */
+    payload[4] = (uint8_t)(((Rte_Read_Sht21Valid() != 0U) ? 0x01U : 0x00U) |
+                           ((Rte_Read_CoolState() == 2U)  ? 0x02U : 0x00U));
+    /* payload[5..7] spare */
 
     Uart_TxByte(0xA7U);
     checksum += 0xA7U;
-    for (i = 0U; i < 8U; i++)
-    {
-        Uart_TxByte(payload[i]);
-        checksum += payload[i];
-    }
-    Uart_TxByte(s_alive_counter_DiagFrame_Cool);
-    checksum += s_alive_counter_DiagFrame_Cool;
+    for (i = 0U; i < 8U; i++) { Uart_TxByte(payload[i]); checksum += payload[i]; }
+    Uart_TxByte(s_alive_counter_DiagFrame_Fan);          
+    checksum += s_alive_counter_DiagFrame_Fan;
     Uart_TxByte(checksum);
     Uart_TxByte(0x0DU);
 
-    s_alive_counter_DiagFrame_Cool = (s_alive_counter_DiagFrame_Cool + 1U) % 16U;
+    s_alive_counter_DiagFrame_Fan = (s_alive_counter_DiagFrame_Fan + 1U) % 16U;
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

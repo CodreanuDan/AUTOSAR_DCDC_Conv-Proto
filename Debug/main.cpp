@@ -44,6 +44,7 @@ void peripheral_loop() {}
 /* ASW Runnable APIs */
 #include "SWC_SensorMeasurement.h"
 #include "SWC_PidController.h"
+#include "SWC_CoolingCtrl.h"
 void peripheral_setup ();
 void peripheral_loop ();
 void App_Task_10ms (void );
@@ -51,7 +52,7 @@ void App_Task_50ms (void );
 void App_Task_100ms (void );
 void App_Task_500ms (void );
 int main (void );
-#line 44
+#line 45
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -64,9 +65,7 @@ void App_Task_10ms(void)
 	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
-		IoHwAb_Sensor_MainFunction();
-		/* 2. BSW: Control fan with duty cycle on Timer 2 Fast PWM */
-		IoHwAb_Fan_MainFunction();  
+		IoHwAb_Sensor_MainFunction();										
 	}
 	if (st == ECUM_STATE_RUN) 
 	{
@@ -118,8 +117,12 @@ void App_Task_100ms(void)
 		Adc_StartScan();
 		/* TRIGGER: Trigger next tank level scan cycle*/
 		IoHwAb_Level_MainFunction();
-		/* TRIGGER: BSW:  SHT21 Sensor Temp & Hum */
-		IoHwAb_Sht21_MainFunction();
+		/* 1. TRIGGER: BSW:  SHT21 Sensor Temp & Hum */
+		IoHwAb_Sht21_MainFunction();				 						/* sensor first */
+		/* 2. ASW: Control fan states taking info from sensors and user input and pass command to BSW module IoHwAb */
+		SWC_CoolingCtrl_Runnable((st == ECUM_STATE_PRE_SLEEP) ? 1U : 0U);   /* decide */
+		/* 3. BSW: Control fan with duty cycle on Timer 2 Fast PWM */
+		IoHwAb_Fan_MainFunction();   										/* apply */
 	}
 }
 

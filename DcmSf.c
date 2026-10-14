@@ -147,6 +147,15 @@ static void Dcm_Cb_Read_FanDuty (uint8_t *d)       { d[0] = IoHwAb_Fan_GetDuty()
 static void Dcm_Cb_Write_FanDuty(const uint8_t *d) { Rte_Write_FanDuty(d[0]); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
+static void Dcm_Cb_Read_FanMode (uint8_t *d)       { d[0] = Rte_Read_FanMode(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_FanMode(const uint8_t *d) { Rte_Write_FanMode((d[0] != 0U) ? 1U : 0U); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_FanDuty (uint8_t *d)       { d[0] = Rte_Read_FanManualDuty(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_FanDuty(const uint8_t *d) { Rte_Write_FanManualDuty(d[0]); } /* WRITE Diag Service: WDID 0x2E */
+static Dcm_NegativeResponseCodeType Dcm_CondCheck_FanDuty(void) { return (Rte_Read_FanMode() == 1U) ? DCM_E_OK : UDS_NRC_CONDITIONS_NOT_CORRECT; }
+/* ---------------------------------------- */
+
 static void Dcm_Cb_Write_Kl15Override(const uint8_t *data_in) { IoHwAb_Kl15_ForceState(data_in[0] != 0U); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
@@ -174,7 +183,7 @@ static const Dcm_DidConfigType s_dcm_did_table[] = {
 
 	{ 0x0127U, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                        Dcm_Cb_Write_Kl15Override,   NULL,               NULL},
 	{ 0x0128U, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, Dcm_Cb_Read_FanMode,         Dcm_Cb_Write_FanMode,        NULL,               NULL},
-	{ 0x0129U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_FanDuty,         Dcm_Cb_Write_FanDuty,        NULL,               NULL}
+	{ 0x0129U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_FanDuty,         Dcm_Cb_Write_FanDuty,        NULL,               Dcm_CondCheck_FanDuty}
 };
 
 #define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))

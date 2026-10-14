@@ -117,6 +117,14 @@ void Com_Send_ActiveDTC_Frames(void);
  */
 void Com_Send_DiagFrame_CoolantData(void);
 
+/**
+ * Function name: Com_Send_DiagFrame_FanData
+ * @brief Transmits cooling and fan states and settings(Header 0xA7).
+ * @param: void
+ * @return: void
+ */
+void Com_Send_DiagFrame_FanData(void);
+
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus

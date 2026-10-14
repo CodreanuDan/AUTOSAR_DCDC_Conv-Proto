@@ -89,5 +89,11 @@ void Rte_Write_AmbHumidity(uint16_t val);
 uint16_t Rte_Read_AmbHumidity(void);
 void Rte_Write_Sht21Valid(uint8_t val);
 uint8_t Rte_Read_Sht21Valid(void);
+void Rte_Write_FanMode(uint8_t val);        
+uint8_t Rte_Read_FanMode(void);
+void Rte_Write_FanManualDuty(uint8_t val);  
+uint8_t Rte_Read_FanManualDuty(void);
+void Rte_Write_CoolState(uint8_t val);      
+uint8_t Rte_Read_CoolState(void);
 
 #endif /* RTE_H */
