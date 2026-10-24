@@ -61,7 +61,7 @@ typedef struct {
  *            EXTERNAL GLOBAL VARIABLES
  *******************************************************/
 
-#define TOTAL_DTCS_MAX 12U
+#define TOTAL_DTCS_MAX 24U
 extern DTC_StatusType g_dtc_table[];
 
 /*******************************************************
@@ -92,6 +92,15 @@ void DemSf_MainFunction(void);
  * @return: uint8_t (1 if fault condition is present, 0 otherwise)
  */
 uint8_t DemSf_Monitor_ElectricalFaults(uint8_t param, uint8_t mode);
+
+/**
+ * Function name: DemSf_Monitor_Cooling
+ * @brief Evaluates fault status bits from Rte Signal CoolFaults.
+ * @param: uint8_t param (Unused)
+ * @param: uint8_t mode (Fault condition mode)
+ * @return: uint8_t (1 if fault condition is present, 0 otherwise)
+ */
+uint8_t DemSf_Monitor_Cooling(uint8_t param, uint8_t mode);
 
 /**
  * Function name: Dem_ClearDiagnosticInformation

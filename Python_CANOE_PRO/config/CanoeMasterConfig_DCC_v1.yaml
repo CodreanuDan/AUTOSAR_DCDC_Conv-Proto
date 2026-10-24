@@ -566,4 +566,3 @@ DTC_Table:
   "0x1A0123":
     sae_code: "P1A23"
     name: "Vout_OPEN_CIRCUIT"
-

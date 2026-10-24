@@ -46,6 +46,7 @@ static uint8_t RTE_VAR_Sht21Valid = 0;
 static uint8_t RTE_VAR_FanMode = 0;
 static uint8_t RTE_VAR_FanManualDuty = 0;
 static uint8_t RTE_VAR_CoolState = 0;
+static uint8_t RTE_VAR_CoolFaults = 0;
 
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
@@ -418,5 +419,15 @@ void Rte_Write_CoolState(uint8_t val)
 uint8_t Rte_Read_CoolState(void)
 {
 	return RTE_VAR_CoolState;
+}
+
+void Rte_Write_CoolFaults(uint8_t val)
+{
+	val = RTE_VAR_CoolFaults;
+}
+
+uint8_t Rte_Read_CoolFaults(void)
+{
+	return RTE_VAR_CoolFaults;
 }
 

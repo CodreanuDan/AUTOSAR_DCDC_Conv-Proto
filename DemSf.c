@@ -7,6 +7,8 @@
 #include "DemSf.h"
 #include "AdcSf.h"
 #include "ComSf.h"
+#include "Rte.h"
+#include "CoolingEvents.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -14,22 +16,34 @@
 
 /* Central Diagnostic Trouble Code (DTC) Fault Table */
 DTC_StatusType g_dtc_table[] = {
-    { 0x1A0100U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iin Short to VBAT */
-    { 0x1A0101U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vin Short to VBAT */
-    { 0x1A0102U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iout Short to VBAT */
-    { 0x1A0103U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vout Short to VBAT */
-    { 0x1A0110U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iin Short to GND */
-    { 0x1A0111U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vin Short to GND */
-    { 0x1A0112U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iout Short to GND */
-    { 0x1A0113U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vout Short to GND */
-    { 0x1A0120U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iin Open Circuit */
-    { 0x1A0121U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE },  /* Vin Open Circuit */
-    { 0x1A0122U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },  /* Iout Open Circuit */
-    { 0x1A0123U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE }   /* Vout Open Circuit */
+    { 0x1A0100U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  	  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iin Short to VBAT */
+    { 0x1A0101U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  	  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vin Short to VBAT */
+    { 0x1A0102U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, 	  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Iout Short to VBAT */
+    { 0x1A0103U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, 	  DemSf_Monitor_ElectricalFaults, SHORT_TO_VBAT },          /* Vout Short to VBAT */
+    { 0x1A0110U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  	  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iin Short to GND */
+    { 0x1A0111U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  	  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vin Short to GND */
+    { 0x1A0112U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, 	  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Iout Short to GND */
+    { 0x1A0113U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, 	  DemSf_Monitor_ElectricalFaults, SHORT_TO_GND },           /* Vout Short to GND */
+    { 0x1A0120U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IIN,  	  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },   /* Iin Open Circuit */
+    { 0x1A0121U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,  	  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE },   /* Vin Open Circuit */
+    { 0x1A0122U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_IOUT, 	  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_CURRENT },   /* Iout Open Circuit */
+    { 0x1A0123U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VOUT, 	  DemSf_Monitor_ElectricalFaults, OPEN_CIRCUIT_VOLTAGE },   /* Vout Open Circuit */
+    { 0x1A0140U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_SHT_COMM },
+    { 0x1A0141U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_SHT_RANGE },
+    { 0x1A0150U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_LEVEL, DemSf_Monitor_Cooling, 		  COOL_EVT_LVL_LOW },
+    { 0x1A0151U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_LEVEL, DemSf_Monitor_Cooling, 		  COOL_EVT_LVL_EMPTY },
+    { 0x1A0152U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_LEVEL, DemSf_Monitor_Cooling, 		  COOL_EVT_LVL_SENSOR },
+    { 0x1A0160U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_OVERTEMP_W },
+    { 0x1A0161U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_OVERTEMP_C },
+    { 0x1A0162U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_FAN,   DemSf_Monitor_Cooling, 		  COOL_EVT_INEFFECTIVE }
 };
 
 /* Dynamic calculation of total registered DTCs */
 #define TOTAL_DTCS (sizeof(g_dtc_table) / sizeof(g_dtc_table[0]))
+
+#define DEM_FF_SRC_TEMP   0x80U
+#define DEM_FF_SRC_LEVEL  0x81U
+#define DEM_FF_SRC_FAN    0x82U
 
 /************* END OF VARIABLE DEFINITIONS *************/
 
@@ -37,6 +51,7 @@ DTC_StatusType g_dtc_table[] = {
  *               Local Function Prototypes
  *******************************************************/
 static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition);
+static uint16_t Dem_GetFreezeValue(uint8_t src);
 
 /************* End of Local Function Prototypes *********/
 
@@ -103,6 +118,32 @@ uint8_t DemSf_Monitor_ElectricalFaults(uint8_t param, uint8_t mode)
     return 0U;
 }
 
+/* param = freeze source (unused here), mode = COOL_EVT_* bit to test */
+uint8_t DemSf_Monitor_Cooling(uint8_t param, uint8_t mode)
+{
+	(void)param;
+	return ((Rte_Read_CoolFaults() & mode) != 0U) ? 1U : 0U;
+}
+
+/* Helper function to combine freeze frame data from adc and from cooling faults */
+static uint16_t Dem_GetFreezeValue(uint8_t src)
+{
+    uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+
+    if (src < ADC_NUM_CHANNELS)
+    {
+        Adc_ReadGroup(raw_adc_buffer);
+        return raw_adc_buffer[src];
+    }
+    switch (src)
+    {
+        case DEM_FF_SRC_TEMP:  return (uint16_t)Rte_Read_AmbTemp();
+        case DEM_FF_SRC_LEVEL: return (uint16_t)Rte_Read_CoolantLevelRaw();
+        case DEM_FF_SRC_FAN:   return (uint16_t)Rte_Read_FanDuty();
+        default:               return 0U;
+    }
+}
+
 /**
  * Function name: Dem_UpdateEvent
  * @brief Internal debouncing integrator and status transition state machine.
@@ -138,10 +179,10 @@ static void Dem_UpdateEvent(DTC_StatusType *dtc, uint8_t error_condition)
             dtc->qualifying_status = DEM_STATUS_CONFIRMED;
             dtc->fault_status = DTC_STATUS_ACTIVE;
             
-			/* Fetch live ADC raw sample for freeze frame data */
+			/* Fetch live ADC raw sample or cooling data for freeze frame data */
             uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
             Adc_ReadGroup(raw_adc_buffer);
-            dtc->freeze_frame_data = raw_adc_buffer[dtc->adc_source_ptr];
+            dtc->freeze_frame_data = Dem_GetFreezeValue(dtc->adc_source_ptr);
         }
     }
     /* CASE 2: Error condition is not active*/
@@ -183,7 +224,6 @@ void DemSf_MainFunction(void)
     {
         uint8_t error_detected = 0U;
         
-        //if ((g_dtc_table[i].monitor_func != NULL) && (g_dtc_table[i].adc_source_ptr != NULL))
 		if (g_dtc_table[i].monitor_func != NULL)
         {
             error_detected = g_dtc_table[i].monitor_func((g_dtc_table[i].adc_source_ptr), g_dtc_table[i].error_mode);

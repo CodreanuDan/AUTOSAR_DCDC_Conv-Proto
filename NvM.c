@@ -86,6 +86,7 @@ void NvM_ReadAll(void)
     for (i = 0U; i < total_dtcs; i++)
     {
         uint8_t status = eeprom_read_byte(NVM_ADDR_DTC_STATUSES + i);
+		if (status > DTC_STATUS_ACTIVE) { status = DTC_STATUS_MISSING; }   /* blank/stale EEPROM (0xFF) */
         g_dtc_table[i].fault_status = status;
         if (status != DTC_STATUS_MISSING)
         {

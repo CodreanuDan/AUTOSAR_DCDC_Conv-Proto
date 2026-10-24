@@ -95,5 +95,7 @@ void Rte_Write_FanManualDuty(uint8_t val);
 uint8_t Rte_Read_FanManualDuty(void);
 void Rte_Write_CoolState(uint8_t val);      
 uint8_t Rte_Read_CoolState(void);
+void Rte_Write_CoolFaults(uint8_t val);
+uint8_t Rte_Read_CoolFaults(void);
 
 #endif /* RTE_H */
