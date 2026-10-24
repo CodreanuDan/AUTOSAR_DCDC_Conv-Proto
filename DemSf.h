@@ -43,6 +43,11 @@ extern "C" {
 #define OPEN_CIRCUIT_VOLTAGE   3U
 #define OPEN_CIRCUIT_CURRENT   4U
 
+/* Freeze-frame sources for non-ADC events (values >= ADC_NUM_CHANNELS) */
+#define DEM_FF_SRC_TEMP   0x80U
+#define DEM_FF_SRC_LEVEL  0x81U
+#define DEM_FF_SRC_FAN    0x82U
+
 /**
  * @brief DTC Event Record Structure
  */

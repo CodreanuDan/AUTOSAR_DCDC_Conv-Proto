@@ -423,7 +423,7 @@ uint8_t Rte_Read_CoolState(void)
 
 void Rte_Write_CoolFaults(uint8_t val)
 {
-	val = RTE_VAR_CoolFaults;
+	RTE_VAR_CoolFaults = val;
 }
 
 uint8_t Rte_Read_CoolFaults(void)

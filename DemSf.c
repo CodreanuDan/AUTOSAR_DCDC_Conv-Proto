@@ -41,10 +41,6 @@ DTC_StatusType g_dtc_table[] = {
 /* Dynamic calculation of total registered DTCs */
 #define TOTAL_DTCS (sizeof(g_dtc_table) / sizeof(g_dtc_table[0]))
 
-#define DEM_FF_SRC_TEMP   0x80U
-#define DEM_FF_SRC_LEVEL  0x81U
-#define DEM_FF_SRC_FAN    0x82U
-
 /************* END OF VARIABLE DEFINITIONS *************/
 
 /*******************************************************

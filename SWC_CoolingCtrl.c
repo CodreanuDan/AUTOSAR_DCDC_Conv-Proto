@@ -24,7 +24,7 @@
 #define COOL_T_MAX_C100         12500     /* 125.00 degC (SHT21 range) */
 #define COOL_T_WARN_C100        8500      /* 85.00 degC */
 #define COOL_T_CRIT_C100        10000     /* 100.00 degC */
-#define COOL_INEFF_CALLS        6000U     /* 6000 x 10 ms = 60 s */
+#define COOL_INEFF_CALLS        600U      /* 6000 x 10 ms = 60 s */
 
 static const int16_t s_band_up[3]    = { COOL_T_C100_BAND1, COOL_T_C100_BAND2, COOL_T_C100_BAND3 };
 static const uint8_t s_band_duty[4]  = { 25U, 50U, 75U, 90U };
@@ -164,6 +164,8 @@ static uint8_t Cool_EvalFaults(uint8_t duty)
 	{ 
 		fault_status |= COOL_EVT_INEFFECTIVE; 
 	}
+
+	return fault_status;
 }
 
 void SWC_CoolingCtrl_Runnable(uint8_t afterrun_active)
