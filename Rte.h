@@ -97,5 +97,11 @@ void Rte_Write_CoolState(uint8_t val);
 uint8_t Rte_Read_CoolState(void);
 void Rte_Write_CoolFaults(uint8_t val);
 uint8_t Rte_Read_CoolFaults(void);
+void Rte_Write_FuseState(uint8_t val);
+uint8_t Rte_Read_FuseState(void);
+void Rte_Write_FuseSense(uint8_t val);
+uint8_t Rte_Read_FuseSense(void);
+void Rte_Write_SafetyCauses(uint8_t val);
+uint8_t Rte_Read_SafetyCauses(void);
 
 #endif /* RTE_H */

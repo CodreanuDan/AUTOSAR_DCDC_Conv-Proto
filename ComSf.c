@@ -449,14 +449,19 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
 	Uart_TxByte(ecum_state);
 	checksum += ecum_state;
 
-    /* 6. Padding (3 bytes) */
-    for (i = 0U; i < 3U; i++) 
-    {
-        Uart_TxByte(0x00U);
-        checksum += 0x00U;
-    }
+	/* 6. Fuse state (offset 6) and debounced fuse sense pin (offset 7) */
+	uint8_t fuse_state = Rte_Read_FuseState();
+	Uart_TxByte(fuse_state);
+	checksum += fuse_state;
+	uint8_t fuse_sense = Rte_Read_FuseSense();
+	Uart_TxByte(fuse_sense);
+	checksum += fuse_sense;
+
+	/* 7. Padding (1 byte) */
+	Uart_TxByte(0x00U);
+	checksum += 0x00U;
     
-    /* 7. Alive Counter, Checksum, and Terminator */
+    /* 8. Alive Counter, Checksum, and Terminator */
     Uart_TxByte(s_alive_counter_DiagFrame_Act); 
     checksum += s_alive_counter_DiagFrame_Act;
     

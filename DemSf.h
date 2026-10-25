@@ -107,6 +107,8 @@ uint8_t DemSf_Monitor_ElectricalFaults(uint8_t param, uint8_t mode);
  */
 uint8_t DemSf_Monitor_Cooling(uint8_t param, uint8_t mode);
 
+uint8_t DemSf_Monitor_Safety(uint8_t param, uint8_t mode);
+
 /**
  * Function name: Dem_ClearDiagnosticInformation
  * @brief Clears confirmed and passive DTCs from fault memory (Triggered by UDS Service 0x14).

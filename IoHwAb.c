@@ -37,6 +37,10 @@ static uint8_t s_level_last_raw   = 0U;
 static uint8_t s_level_same_count = 0U;
 static uint8_t s_level_pct        = 0U;   /* last VALID level, held while the sensor is implausible */
 
+#define FUSE_CONFIRM_SAMPLES   10U     /* 10 x 10 ms = 100 ms to confirm a change */
+static uint8_t s_fuse_level = 1U;      /* debounced level, assume "fuse OK" at boot */
+static uint8_t s_fuse_cnt   = 0U;
+
 /*******************************************************
  *            START OF LOCAL FUNCTION PROTOTYPES
  ******************************************************/
@@ -370,6 +374,27 @@ void IoHwAb_Sht21_MainFunction(void)
    Sht21_MainFunction();
    Sht21_GetData(&t, &rh);
    Rte_Write_AmbTemp(t); Rte_Write_AmbHumidity(rh); Rte_Write_Sht21Valid(Sht21_IsValid());
+}
+
+void IoHwAb_Fuse_MainFunction(void)
+{
+	uint8_t raw = (Dio_ReadChannel(DIO_CHANNEL_FUSE_SENSE) == STD_HIGH) ? 1U : 0U;
+
+	if (raw == s_fuse_level)
+    {
+        s_fuse_cnt = 0U;
+    }
+    else
+	{
+		s_fuse_cnt++;
+		if (s_fuse_cnt >= FUSE_CONFIRM_SAMPLES)
+		{
+            s_fuse_level = raw;
+            s_fuse_cnt   = 0U;
+		}
+	}
+
+	Rte_Write_FuseSense(s_fuse_level);
 }
 
 /************* END OF FUNCTION DEFINITIONS ************/

@@ -176,6 +176,14 @@ void IoHwAb_Fan_MainFunction(void);
  */
 void IoHwAb_Sht21_MainFunction(void);
 
+/**
+ * Function name: IoHwAb_Fuse_MainFunction
+ * @brief Reads the fuse sense pin (PB5), debounces it (100 ms) and publishes it to the RTE.
+ * @param: void
+ * @return: void
+ */
+void IoHwAb_Fuse_MainFunction(void);
+
 /************* END OF FUNCTION PROTOTYPES ************/
 
 #ifdef __cplusplus

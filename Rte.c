@@ -47,6 +47,9 @@ static uint8_t RTE_VAR_FanMode = 0;
 static uint8_t RTE_VAR_FanManualDuty = 0;
 static uint8_t RTE_VAR_CoolState = 0;
 static uint8_t RTE_VAR_CoolFaults = 0;
+static uint8_t RTE_VAR_FuseSense = 1; /* debounced PB5 level (1 = high, 0 = low) */
+static uint8_t RTE_VAR_FuseState = 2; /* 0 OK, 1 BLOWN, 2 UNKNOWN*/
+static uint8_t RTE_VAR_SafetyCauses = 0;
 
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
@@ -430,4 +433,36 @@ uint8_t Rte_Read_CoolFaults(void)
 {
 	return RTE_VAR_CoolFaults;
 }
+
+void Rte_Write_FuseState(uint8_t val)
+{
+	RTE_VAR_FuseState = val;
+}
+
+uint8_t Rte_Read_FuseState(void)
+{
+	return RTE_VAR_FuseState;
+}
+
+void Rte_Write_FuseSense(uint8_t val)
+{
+	RTE_VAR_FuseSense = val;
+}
+
+uint8_t Rte_Read_FuseSense(void)
+{
+	return RTE_VAR_FuseSense;
+}
+
+void Rte_Write_SafetyCauses(uint8_t val)
+{
+	RTE_VAR_SafetyCauses = val;
+}
+
+uint8_t Rte_Read_SafetyCauses(void)
+{
+	return RTE_VAR_SafetyCauses;
+}
+
+
 

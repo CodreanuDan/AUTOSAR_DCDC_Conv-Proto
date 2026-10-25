@@ -59,6 +59,10 @@ void Port_Init(void)
 	/* Cooling fan pin PB3 (OC2A Timer 2 Fast PWM) */
 	PORTB &= ~(1U << PORT_PIN_FAN_PWM);
 	DDRB  |=  (1U << PORT_PIN_FAN_PWM);    /* fan pin output, default LOW = fan OFF */
+
+	/* Fuse sense PB5: input, NO pull-up (the external divider drives it) */
+	DDRB  &= ~(1U << PORT_PIN_FUSE_SENSE);
+	PORTB &= ~(1U << PORT_PIN_FUSE_SENSE);
 }
 
 /************* END OF FUCTION DEFINITIONS ************/

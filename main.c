@@ -42,6 +42,7 @@ void peripheral_loop() {}
 #include "SWC_SensorMeasurement.h"
 #include "SWC_PidController.h"
 #include "SWC_CoolingCtrl.h"
+#include "SWC_SafetyMonitor.h"
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -54,7 +55,8 @@ void App_Task_10ms(void)
 	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* 1. INPUT (BSW): Process raw hardware data, filter, and publish to RTE */
-		IoHwAb_Sensor_MainFunction();										
+		IoHwAb_Sensor_MainFunction();	
+		IoHwAb_Fuse_MainFunction();									
 	}
 	if (st == ECUM_STATE_RUN) 
 	{
@@ -66,10 +68,13 @@ void App_Task_10ms(void)
 		
 		float v_in = SWC_SensorMeasurement_GetVin();
 		float v_out = SWC_SensorMeasurement_GetVout();
-		
+
 		SWC_PidController_Runnable(v_in, v_out);
 
-		/* 4. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
+	    /* 4. LOGIC (ASW): Perfom Sanity checks over the entire converter system */
+		SWC_SafetyMonitor_Runnable(v_in);
+
+		/* 5. OUTPUT (BSW): Fetch logical commands from RTE and apply to PWM/DIO drivers */
 		IoHwAb_Actuator_MainFunction();
 	}
 

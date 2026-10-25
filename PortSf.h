@@ -45,6 +45,9 @@ extern "C" {
 /* Cooling fan pin PB3 (OC2A Timer 2 Fast PWM) */
 #define PORT_PIN_FAN_PWM       PB3      /* OC2A */
 
+/* Fuse sense divider, input without pull-up */
+#define PORT_PIN_FUSE_SENSE    PB5      
+
 /*******************************************************
  *            START OF VARIABLE DECLARATIONS
  *******************************************************/

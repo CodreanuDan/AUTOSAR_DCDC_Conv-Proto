@@ -9,7 +9,7 @@
 #include "ComSf.h"
 #include "Rte.h"
 #include "CoolingEvents.h"
-
+#include "SafetyEvents.h"
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
  *******************************************************/
@@ -35,7 +35,8 @@ DTC_StatusType g_dtc_table[] = {
     { 0x1A0152U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_LEVEL, DemSf_Monitor_Cooling, 		  COOL_EVT_LVL_SENSOR },
     { 0x1A0160U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_OVERTEMP_W },
     { 0x1A0161U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_TEMP,  DemSf_Monitor_Cooling, 		  COOL_EVT_OVERTEMP_C },
-    { 0x1A0162U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_FAN,   DemSf_Monitor_Cooling, 		  COOL_EVT_INEFFECTIVE }
+    { 0x1A0162U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, DEM_FF_SRC_FAN,   DemSf_Monitor_Cooling, 		  COOL_EVT_INEFFECTIVE },
+    { 0x1A0170U, DEM_STATUS_OK, DTC_STATUS_MISSING, 0U, 0U, ADC_CH_VIN,       DemSf_Monitor_Safety,           SAFE_CAUSE_FUSE_BLOWN }
 };
 
 /* Dynamic calculation of total registered DTCs */
@@ -119,6 +120,12 @@ uint8_t DemSf_Monitor_Cooling(uint8_t param, uint8_t mode)
 {
 	(void)param;
 	return ((Rte_Read_CoolFaults() & mode) != 0U) ? 1U : 0U;
+}
+
+uint8_t DemSf_Monitor_Safety(uint8_t param, uint8_t mode)
+{
+    (void)param;
+    return ((Rte_Read_SafetyCauses() & mode) != 0U) ? 1U : 0U;
 }
 
 /* Helper function to combine freeze frame data from adc and from cooling faults */
