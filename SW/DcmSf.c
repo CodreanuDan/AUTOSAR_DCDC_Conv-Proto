@@ -1,0 +1,546 @@
+/*
+ * Filename: DcmSf.c
+ * @brief: Contains DSL, DSD, and DSP implementation for Diagnostic Manager (DcmSf)
+ * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
+ */
+
+#include "DcmSf.h"
+#include "UartSf.h"
+#include "DemSf.h"
+#include "PwmSf.h"
+#include "DioSf.h"
+#include "Rte.h"
+#include "ComSf.h"
+#include "IoHwAb.h"
+#include "EcuM.h"
+#include "SafetyEvents.h"
+
+/*******************************************************
+ *            START OF VARIABLE DEFINITIONS
+ *******************************************************/
+
+/**
+ * @brief Current active UDS session state (DSL Layer)
+ */
+static Dcm_SesCtrlType s_current_session = DCM_DEFAULT_SESSION;
+
+/**
+ * @brief Data type classification for generic DID payload processing
+ */
+typedef enum {
+    DID_DATA_UINT8,       /* 1-byte raw value (uint8_t, bool, status flag) */
+    DID_DATA_UINT16,      /* 2-byte numeric value (uint16_t) */
+    DID_DATA_ARRAY        /* Multi-byte array payload (e.g., [DutyA, DutyB]) */
+} Dcm_DidDataType;
+
+/**
+ * @brief DID Access Rights
+ */
+typedef enum {
+    DID_READ_ONLY,
+    DID_READ_WRITE,
+	DID_WRITE_ONLY,
+} Dcm_DidAccessType;
+
+/**
+ * @brief Pointer type for optional hardware/RTE update notification callbacks
+ */
+typedef void (*Dcm_DidUpdateNotificationFctPtr)(void);
+
+typedef void (*Dcm_DidReadFctPtr)(uint8_t *data_out);
+typedef void (*Dcm_DidWriteFctPtr)(const uint8_t *data_in);
+
+
+/**
+ * @brief Pointer type for condition-check function pointer type and field
+ */
+typedef uint8_t Dcm_NegativeResponseCodeType;
+#define DCM_E_OK 0x00U   /* condition check passed */
+typedef Dcm_NegativeResponseCodeType (*Dcm_ConditionCheckFncType)(void);
+
+
+
+/**
+ * @brief Central Data Identifier Configuration Structure
+ */
+typedef struct {
+    uint16_t                        did;            /* 2-byte DID identifier (e.g., 0x0100) */
+    uint8_t                         data_size;      /* Payload size in bytes (1 or 2) */
+    Dcm_DidDataType                 data_type;      /* Payload data layout type */
+    Dcm_DidAccessType               access_type;    /* Read / Write access permission */
+	Dcm_DidReadFctPtr  				read_fnc;       /* Callback for HW/RTE Read */
+    Dcm_DidWriteFctPtr 				write_fnc;      /* Callback for HW/RTE Write */
+	void              				*p_static_data; /* Static buffer pointer for BSW-only internal DIDs */
+	Dcm_ConditionCheckFncType       cond_check_fnc; /* NULL if no guard needed */
+} Dcm_DidConfigType;
+
+
+/* =====================================================================
+ * DID READ/WRITE/CONDITION CHECK CALLBACKS (MCAL & RTE MEDIATED)
+ * ===================================================================== */
+
+/* DID 0x0100: PWM Duty Cycle (MCAL Direct) */
+static void Dcm_Cb_Read_PwmDuty(uint8_t *data_out) { uint16_t top = Pwm_ReadIcr1();
+													 data_out[0] = (uint8_t)(((uint32_t)Pwm_ReadOcr1A()*100UL)/top);
+													 data_out[1] = (uint8_t)(((uint32_t)Pwm_ReadOcr1B()*100UL)/top);
+												   } /* READ Diag Service: RDID 0x22*/
+
+//static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Pwm_SetDutyCycle(data_in[0], data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
+static void Dcm_Cb_Write_PwmDuty(const uint8_t *data_in) { Rte_Write_DutyA(data_in[0]); Rte_Write_DutyB(data_in[1]);} /* WRITE Diag Service: WDID 0x2E */
+static Dcm_NegativeResponseCodeType Dcm_CondCheck_PwmDuty(void) {return (Rte_Read_PidDisableFlag() == true) ? DCM_E_OK : UDS_NRC_CONDITIONS_NOT_CORRECT;}
+/* ---------------------------------------- */
+
+/* DID 0x0101: PWM Target Frequency (MCAL Direct) */
+static void Dcm_Cb_Read_PwmFreq(uint8_t *data_out) { uint16_t freq = Pwm_ReadIcr1(); data_out[0] = (uint8_t)(freq & 0xFFU); data_out[1] = (uint8_t)((freq >> 8U) & 0xFFU);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_PwmFreq(const uint8_t *data_in) { uint16_t freq = (uint16_t)(((uint16_t)data_in[1] << 8U) | data_in[0]); Pwm_SetFrequency(freq); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+/* DID 0x0102: Target Vout (ASW via RTE) */
+static void Dcm_Cb_Read_TargetVout(uint8_t *data_out) { data_out[0] = Rte_Read_PidTargetSetpoint();} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_TargetVout(const uint8_t *data_in){ Rte_Write_PidTargetSetpoint(data_in[0]);} /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+/* DID 0x0103: PID Disable Flag (ASW via RTE) */
+static void Dcm_Cb_Read_PidDisableFlag(uint8_t *data_out) { data_out[0] = (uint8_t)Rte_Read_PidDisableFlag(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_PidDisableFlag(const uint8_t *data_in) { Rte_Write_PidDisableFlag((bool)data_in[0]);} /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+/* DID 0x0104: Relay Input State (MCAL Direct) */
+static void Dcm_Cb_Read_RelayIn(uint8_t *data_out) { data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_IN);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_RelayIn(const uint8_t *data_in){ IoHwAb_SetRelayInput(data_in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+/* DID 0x0105: Relay Output State (MCAL Direct) */
+static void Dcm_Cb_Read_RelayOut(uint8_t *data_out){ data_out[0] = (uint8_t)Dio_ReadChannel(DIO_CHANNEL_RELAY_OUT);} /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_RelayOut(const uint8_t *data_in){ IoHwAb_SetRelayOutput(data_in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+/* Callbacks for Cyclic DIDs on ComSf */
+static void Dcm_Cb_Read_CycFault(uint8_t *out) { out[0] = Com_GetCyclicFaultUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycFault(const uint8_t *in) { Com_SetCyclicFaultUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycPid(uint8_t *out) { out[0] = Com_GetCyclicPidUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycPid(const uint8_t *in) { Com_SetCyclicPidUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycPwm(uint8_t *out) { out[0] = Com_GetCyclicPwmUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycPwm(const uint8_t *in) { Com_SetCyclicPwmUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycAct(uint8_t *out) { out[0] = Com_GetCyclicActUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycAct(const uint8_t *in) { Com_SetCyclicActUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycConv(uint8_t *out) { out[0] = Com_GetCyclicConvUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycConv(const uint8_t *in) { Com_SetCyclicConvUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycCool(uint8_t *out)       { out[0] = Com_GetCyclicCoolUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycCool(const uint8_t *in) { Com_SetCyclicCoolUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_CycFan(uint8_t *out)       { out[0] = Com_GetCyclicFanUpdates(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_CycFan(const uint8_t *in) { Com_SetCyclicFanUpdates(in[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_FanMode (uint8_t *d)       { d[0] = Rte_Read_FanMode(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_FanMode(const uint8_t *d) { Rte_Write_FanMode((d[0] != 0U) ? 1U : 0U); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_FanDuty (uint8_t *d)       { d[0] = Rte_Read_FanManualDuty(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_FanDuty(const uint8_t *d) { Rte_Write_FanManualDuty(d[0]); } /* WRITE Diag Service: WDID 0x2E */
+static Dcm_NegativeResponseCodeType Dcm_CondCheck_FanDuty(void) { return (Rte_Read_FanMode() == 1U) ? DCM_E_OK : UDS_NRC_CONDITIONS_NOT_CORRECT; }
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Write_Kl15Override(const uint8_t *data_in) { IoHwAb_Kl15_ForceState(data_in[0] != 0U); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Read_RecMode (uint8_t *d)       { d[0] = Rte_Read_RecoveryMode(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_RecMode(const uint8_t *d) { Rte_Write_RecoveryMode((d[0] != 0U) ? 1U : 0U); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
+static void Dcm_Cb_Write_SafeReset(const uint8_t *d) { (void)d; Rte_Write_SafetyResetReq(1U); } /* READ Diag Service: RDID 0x22*/
+static Dcm_NegativeResponseCodeType Dcm_CondCheck_SafeReset(void)
+{
+    return ((Rte_Read_SafetyCauses() & SAFE_SHUTDOWN_MASK) == 0U) ? DCM_E_OK : UDS_NRC_CONDITIONS_NOT_CORRECT;
+}
+/* ---------------------------------------- */
+
+/* =====================================================================
+ * CENTRAL DID CONFIGURATION TABLE 
+ * ===================================================================== */
+static const Dcm_DidConfigType s_dcm_did_table[] = {
+    /* DID     Size Type             Access          Read Callback                Write Callback               BSW Static Pointer  CondCheck */
+    /* HW & ASW DIDs via Callbacks */
+    { 0x0100U, 2U,  DID_DATA_ARRAY,  DID_READ_WRITE, Dcm_Cb_Read_PwmDuty,         Dcm_Cb_Write_PwmDuty,        NULL,  			   Dcm_CondCheck_PwmDuty},
+    { 0x0101U, 2U,  DID_DATA_UINT16, DID_READ_WRITE, Dcm_Cb_Read_PwmFreq,         Dcm_Cb_Write_PwmFreq,        NULL,  			   NULL},
+    { 0x0102U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_TargetVout,      Dcm_Cb_Write_TargetVout,     NULL,  			   NULL},
+    { 0x0103U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_PidDisableFlag,  Dcm_Cb_Write_PidDisableFlag, NULL,  			   NULL},
+    { 0x0104U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayIn,         Dcm_Cb_Write_RelayIn,        NULL,  			   NULL},
+    { 0x0105U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RelayOut,        Dcm_Cb_Write_RelayOut,       NULL,  			   NULL},
+    
+    /* BSW Internal Cyclic Config DIDs using Static Variables and Data Types */
+    { 0x0106U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycFault,        Dcm_Cb_Write_CycFault,       NULL,  			   NULL},
+    { 0x0107U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPid,          Dcm_Cb_Write_CycPid,         NULL,  			   NULL},
+    { 0x0108U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycPwm,          Dcm_Cb_Write_CycPwm,         NULL,  			   NULL},
+    { 0x0109U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycAct,          Dcm_Cb_Write_CycAct,         NULL,  			   NULL},
+    { 0x0110U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycConv,         Dcm_Cb_Write_CycConv,        NULL,  			   NULL},
+	{ 0x010AU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycCool,         Dcm_Cb_Write_CycCool,        NULL,               NULL},
+	{ 0x010BU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_CycFan,          Dcm_Cb_Write_CycFan,         NULL,               NULL},
+
+	{ 0x0127U, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                        Dcm_Cb_Write_Kl15Override,   NULL,               NULL},
+	{ 0x0128U, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, Dcm_Cb_Read_FanMode,         Dcm_Cb_Write_FanMode,        NULL,               NULL},
+	{ 0x0129U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_FanDuty,         Dcm_Cb_Write_FanDuty,        NULL,               Dcm_CondCheck_FanDuty},
+
+	{ 0x012AU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RecMode, 		  Dcm_Cb_Write_RecMode,        NULL, 			   NULL},
+	{ 0x012BU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                		  Dcm_Cb_Write_SafeReset,      NULL, 			   Dcm_CondCheck_SafeReset}
+};
+
+#define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))
+
+/************* END OF VARIABLE DEFINITIONS *************/
+
+/*******************************************************
+ *               Local Function Prototypes
+ *******************************************************/
+
+/* Helper TX functions */
+static void Dcm_SendPositiveResponse(uint8_t sid, const uint8_t *data_ptr, uint8_t len);
+static void Dcm_SendNegativeResponse(uint8_t sid, uint8_t nrc);
+
+/* DSP Service Processors */
+static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr);
+static void Dcm_Dsp_ClearFaultMem(void);
+static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr);
+static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr);
+static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr);
+//static void Dcm_Dsp_RoutineControl(const uint8_t *req_ptr);
+
+/************* End of Local Function Prototypes *********/
+
+/********************************************************
+ *             START OF FUNCTION DEFINITIONS
+ *******************************************************/
+
+void Dcm_Init(void)
+{
+    s_current_session = DCM_DEFAULT_SESSION;
+}
+
+Dcm_SesCtrlType Dcm_GetSesCtrlType(void)
+{
+    return s_current_session;
+}
+
+/* =====================================================================
+ * DSD (Diagnostic Service Dispatcher) LAYER
+ * ===================================================================== */
+
+void Dcm_ProcessRxPdu(const uint8_t *pdu_ptr)
+{
+    if (pdu_ptr == NULL)
+    {
+        return;
+    }
+
+    uint8_t sid = pdu_ptr[0];
+
+    /* Route request to specific DSP processor */
+    switch (sid)
+    {
+        case UDS_SID_ECU_RESET:
+            Dcm_Dsp_EcuReset(pdu_ptr);
+            break;
+        case UDS_SID_CLEAR_FAULT_MEM:
+            Dcm_Dsp_ClearFaultMem();
+            break;
+        case UDS_SID_READ_DTC_INFO:
+            Dcm_Dsp_ReadDtcInfo(pdu_ptr);
+            break;
+        case UDS_SID_READ_DATA_BY_ID:
+            Dcm_Dsp_ReadDataByIdentifier(pdu_ptr);
+            break;
+        case UDS_SID_WRITE_DATA_BY_ID:
+            Dcm_Dsp_WriteDataByIdentifier(pdu_ptr);
+            break;
+        case UDS_SID_ROUTINE_CONTROL:
+            //Dcm_Dsp_RoutineControl(pdu_ptr);
+			Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+            break;
+        default:
+            Dcm_SendNegativeResponse(sid, UDS_NRC_SERVICE_NOT_SUPPORTED);
+            break;
+    }
+}
+
+/* =====================================================================
+ * DSP (Diagnostic Service Processing) LAYER
+ * ===================================================================== */
+
+static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr)
+{
+    uint8_t reset_type = req_ptr[1];
+
+    if (reset_type == 0x02U) /* Soft Reset */
+    {
+        /* Send positive response first before triggering state transition */
+        Dcm_SendPositiveResponse(UDS_SID_ECU_RESET, &reset_type, 1U);
+
+        /* Set flag or notify EcuM to transition into SHUTDOWN/RESET state */
+        EcuM_SetResetRequest(ECUM_RESET_SOFT);
+    }
+    else
+    {
+        Dcm_SendNegativeResponse(UDS_SID_ECU_RESET, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+    }
+}
+
+static void Dcm_Dsp_ClearFaultMem(void)
+{
+    /* Clear fault memory using DemSf */
+    Dem_ClearDiagnosticInformation();
+    
+    Dcm_SendPositiveResponse(UDS_SID_CLEAR_FAULT_MEM, NULL, 0U);
+}
+
+static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr)
+{
+    uint8_t sub_func = req_ptr[1];
+
+    if (sub_func == 0x02U) /* reportDTCByStatusMask */
+    {
+        /* Handled by DemSf multi-frame response */
+        Dem_ReportDTCByStatusMask();
+    }
+    else
+    {
+        Dcm_SendNegativeResponse(UDS_SID_READ_DTC_INFO, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+    }
+}
+
+/**
+ * Function name: Dcm_Dsp_ReadDataByIdentifier
+ * @brief Generic Handler for UDS Service 0x22 (Read Data By Identifier)
+ * Searches the DID configuration table and packs the response payload dynamically.
+ * @param: const uint8_t* req_ptr (Pointer to incoming UDS request frame)
+ * @return: void
+ */
+static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr)
+{
+    uint8_t i;
+    uint8_t b;
+    uint16_t requested_did;
+    bool did_found = false;
+
+    /* Extract 16-bit DID from request frame (Bytes 1 and 2) */
+    requested_did = (uint16_t)(((uint16_t)req_ptr[1] << 8U) | req_ptr[2]);
+
+    for (i = 0U; i < DCM_TOTAL_DIDS; i++)
+    {
+        if (s_dcm_did_table[i].did == requested_did)
+        {
+            uint8_t resp_payload[8];
+
+            /* Echo back requested DID in response header bytes 0 and 1 */
+            resp_payload[0] = req_ptr[1];
+            resp_payload[1] = req_ptr[2];
+
+            /* Priority 1: Execute live Read Callback (MCAL Hardware or RTE Port) */
+            if (s_dcm_did_table[i].read_fnc != NULL)
+            {
+                s_dcm_did_table[i].read_fnc(&resp_payload[2]);
+            }
+            /* Priority 2: Fallback to static internal BSW buffer based on data layout type */
+            else if (s_dcm_did_table[i].p_static_data != NULL)
+            {
+                if (s_dcm_did_table[i].data_type == DID_DATA_UINT16)
+                {
+                    uint16_t val = *((uint16_t*)s_dcm_did_table[i].p_static_data);
+                    resp_payload[2] = (uint8_t)(val & 0xFFU);          /* Low Byte */
+                    resp_payload[3] = (uint8_t)((val >> 8U) & 0xFFU);  /* High Byte */
+                }
+                else /* DID_DATA_UINT8 or DID_DATA_ARRAY */
+                {
+                    uint8_t *p_src = (uint8_t*)s_dcm_did_table[i].p_static_data;
+                    for (b = 0U; b < s_dcm_did_table[i].data_size; b++)
+                    {
+                        resp_payload[2U + b] = p_src[b];
+                    }
+                }
+            }
+
+            /* Transmit UDS Positive Response (0x62) with total payload length */
+            Dcm_SendPositiveResponse(UDS_SID_READ_DATA_BY_ID, resp_payload, s_dcm_did_table[i].data_size + 2U);
+            did_found = true;
+            break;
+        }
+    }
+
+    if (!did_found)
+    {
+        /* DID not configured in table: Return NRC 0x31 (Request Out Of Range) */
+        Dcm_SendNegativeResponse(UDS_SID_READ_DATA_BY_ID, UDS_NRC_REQUEST_OUT_OF_RANGE);
+    }
+}
+
+/**
+ * Function name: Dcm_Dsp_WriteDataByIdentifier
+ * @brief Generic Handler for UDS Service 0x2E (Write Data By Identifier)
+ * Updates memory dynamically and triggers optional hardware/RTE notification callbacks.
+ * @param: const uint8_t* req_ptr (Pointer to incoming UDS request frame)
+ * @return: void
+ */
+static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
+{
+    uint8_t i;
+    uint8_t b;
+    uint16_t requested_did;
+    bool did_found = false;
+
+    /* Extract 16-bit DID from request frame (Bytes 1 and 2) */
+    requested_did = (uint16_t)(((uint16_t)req_ptr[1] << 8U) | req_ptr[2]);
+
+	if ((EcuM_GetState() == ECUM_STATE_SLEEP) && (requested_did != 0x010AU))
+	{
+		Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
+		return;
+	}
+
+    for (i = 0U; i < DCM_TOTAL_DIDS; i++)
+    {
+        if (s_dcm_did_table[i].did == requested_did)
+        {
+            /* Verify write permissions for requested DID */
+            if (
+				(s_dcm_did_table[i].access_type != DID_READ_WRITE) &&
+				(s_dcm_did_table[i].access_type != DID_WRITE_ONLY)
+			   )
+            {
+                Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
+                return;
+            }
+
+			/* Verify write pre-conditions for requested DID */
+			if (s_dcm_did_table[i].cond_check_fnc != NULL)
+			{
+				Dcm_NegativeResponseCodeType nrc = s_dcm_did_table[i].cond_check_fnc();
+				if (nrc != DCM_E_OK)
+				{
+					Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, nrc);
+					return;
+				}
+			}
+
+            /* Priority 1: Execute live Write Callback (MCAL Hardware or RTE Port) */
+            if (s_dcm_did_table[i].write_fnc != NULL)
+            {
+                s_dcm_did_table[i].write_fnc(&req_ptr[3]);
+            }
+            /* Priority 2: Update static internal BSW buffer based on data layout type */
+            else if (s_dcm_did_table[i].p_static_data != NULL)
+            {
+                if (s_dcm_did_table[i].data_type == DID_DATA_UINT16)
+                {
+                    uint16_t val = (uint16_t)(((uint16_t)req_ptr[4] << 8U) | req_ptr[3]);
+                    *((uint16_t*)s_dcm_did_table[i].p_static_data) = val;
+                }
+                else /* DID_DATA_UINT8 or DID_DATA_ARRAY */
+                {
+                    uint8_t *p_dest = (uint8_t*)s_dcm_did_table[i].p_static_data;
+                    for (b = 0U; b < s_dcm_did_table[i].data_size; b++)
+                    {
+                        p_dest[b] = req_ptr[3U + b];
+                    }
+                }
+            }
+
+			/* Transmit UDS Positive Response (0x6E) echoing DID + value actually applied */
+			uint8_t resp_payload[8];
+			resp_payload[0] = req_ptr[1];
+			resp_payload[1] = req_ptr[2];
+
+			if (s_dcm_did_table[i].read_fnc != NULL)
+			{
+				s_dcm_did_table[i].read_fnc(&resp_payload[2]);
+			}
+			else
+			{
+				resp_payload[2] = 0U;
+			}
+
+			Dcm_SendPositiveResponse(UDS_SID_WRITE_DATA_BY_ID, resp_payload, s_dcm_did_table[i].data_size + 2U);
+
+            did_found = true;
+            break;
+        }
+    }
+
+    if (!did_found)
+    {
+        /* DID not configured in table: Return NRC 0x31 (Request Out Of Range) */
+        Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_REQUEST_OUT_OF_RANGE);
+    }
+}
+
+
+/* =====================================================================
+ * HELPERS: POSITIVE & NEGATIVE RESPONSES
+ * ===================================================================== */
+
+static void Dcm_SendPositiveResponse(uint8_t sid, const uint8_t *data_ptr, uint8_t len)
+{
+	uint8_t i;
+	uint8_t b;
+
+    uint8_t checksum = 0U;
+    uint8_t pos_sid = sid + 0x40U;
+
+    Uart_TxByte(pos_sid);
+    checksum += pos_sid;
+
+    for (i = 0U; i < len; i++)
+    {
+        Uart_TxByte(data_ptr[i]);
+        checksum += data_ptr[i];
+    }
+
+    /* Fill padding up to 10 bytes payload */
+    for (b = len; b < 9U; b++)
+    {
+        Uart_TxByte(0x00U);
+        checksum += 0x00U;
+    }
+
+    Uart_TxByte(checksum);
+    Uart_TxByte(0x0DU);
+}
+
+static void Dcm_SendNegativeResponse(uint8_t sid, uint8_t nrc)
+{
+	uint8_t i;
+    uint8_t checksum = 0U;
+
+    Uart_TxByte(0x7FU);       /* UDS Negative Response Header */
+    checksum += 0x7FU;
+
+    Uart_TxByte(sid);         /* Requested SID */
+    checksum += sid;
+
+    Uart_TxByte(nrc);         /* NRC code */
+    checksum += nrc;
+
+    /* Fill padding up to 10 bytes payload */
+    for (i = 0U; i < 7U; i++)
+    {
+        Uart_TxByte(0x00U);
+        checksum += 0x00U;
+    }
+
+    Uart_TxByte(checksum);
+    Uart_TxByte(0x0DU);
+}
+
+/************* END OF FUNCTION DEFINITIONS ************/
+
+/* End of DcmSf.c */

@@ -1,0 +1,120 @@
+/**
+ * @file Rte.h
+ * @brief Auto-generated RTE Header for DC_DC_Analyzer_Pro
+ * @date Generated automatically by Mini-Tresos RTE Generator Tool
+ */
+
+#ifndef RTE_H
+#define RTE_H
+
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifndef TRUE
+#define TRUE  1U
+#endif
+
+#ifndef FALSE
+#define FALSE 0U
+#endif
+
+/* =====================================================================
+ * RTE PORT-BASED API PROTOTYPES
+ * ===================================================================== */
+void Rte_Write_DutyA(uint8_t val);
+uint8_t Rte_Read_DutyA(void);
+void Rte_Write_DutyB(uint8_t val);
+uint8_t Rte_Read_DutyB(void);
+void Rte_Write_TargetFrequency(uint16_t val);
+uint16_t Rte_Read_TargetFrequency(void);
+void Rte_Write_Physical_Iin(float val);
+float Rte_Read_Physical_Iin(void);
+void Rte_Write_Physical_Vin(float val);
+float Rte_Read_Physical_Vin(void);
+void Rte_Write_Physical_Iout(float val);
+float Rte_Read_Physical_Iout(void);
+void Rte_Write_Physical_Vout(float val);
+float Rte_Read_Physical_Vout(void);
+void Rte_Write_AdcScanDone(uint8_t val);
+uint8_t Rte_Read_AdcScanDone(void);
+void Rte_Write_PidTargetSetpoint(uint16_t val);
+uint16_t Rte_Read_PidTargetSetpoint(void);
+void Rte_Write_PidDisableFlag(bool val);
+bool Rte_Read_PidDisableFlag(void);
+void Rte_Write_ConverterState(uint8_t val);
+uint8_t Rte_Read_ConverterState(void);
+void Rte_Write_LastPidOutput(uint8_t val);
+uint8_t Rte_Read_LastPidOutput(void);
+void Rte_Write_RelayInputState(uint8_t val);
+uint8_t Rte_Read_RelayInputState(void);
+void Rte_Write_RelayOutputState(uint8_t val);
+uint8_t Rte_Read_RelayOutputState(void);
+void Rte_Write_RoutinePwmBoost(uint8_t val);
+uint8_t Rte_Read_RoutinePwmBoost(void);
+void Rte_Write_RoutinePwmBuck(uint8_t val);
+uint8_t Rte_Read_RoutinePwmBuck(void);
+void Rte_Write_RoutinePidBoost(uint8_t val);
+uint8_t Rte_Read_RoutinePidBoost(void);
+void Rte_Write_RoutinePidBuck(uint8_t val);
+uint8_t Rte_Read_RoutinePidBuck(void);
+void Rte_Write_RoutineInputRelay(uint8_t val);
+uint8_t Rte_Read_RoutineInputRelay(void);
+void Rte_Write_RoutineOutputRelay(uint8_t val);
+uint8_t Rte_Read_RoutineOutputRelay(void);
+void Rte_Write_CyclicConvUpdates(uint8_t val);
+uint8_t Rte_Read_CyclicConvUpdates(void);
+void Rte_Write_CyclicFaultUpdates(uint8_t val);
+uint8_t Rte_Read_CyclicFaultUpdates(void);
+void Rte_Write_CyclicPwmUpdates(uint8_t val);
+uint8_t Rte_Read_CyclicPwmUpdates(void);
+void Rte_Write_CyclicActUpdates(uint8_t val);
+uint8_t Rte_Read_CyclicActUpdates(void);
+void Rte_Write_CyclicPidUpdates(uint8_t val);
+uint8_t Rte_Read_CyclicPidUpdates(void);
+void Rte_Write_TickMs(uint8_t val);
+uint8_t Rte_Read_TickMs(void);
+void Rte_Write_Kl15State(uint8_t val);
+uint8_t Rte_Read_Kl15State(void);
+void Rte_Write_CoolantLevel(uint8_t val);        
+uint8_t Rte_Read_CoolantLevel(void);
+void Rte_Write_CoolantLevelRaw(uint8_t val);    
+uint8_t Rte_Read_CoolantLevelRaw(void);
+void Rte_Write_LevelSensorValid(uint8_t val);  
+uint8_t Rte_Read_LevelSensorValid(void);
+void Rte_Write_FanDuty(uint8_t val);
+uint8_t Rte_Read_FanDuty(void);
+void Rte_Write_AmbTemp(int16_t val);
+int16_t Rte_Read_AmbTemp(void);
+void Rte_Write_AmbHumidity(uint16_t val);
+uint16_t Rte_Read_AmbHumidity(void);
+void Rte_Write_Sht21Valid(uint8_t val);
+uint8_t Rte_Read_Sht21Valid(void);
+void Rte_Write_FanMode(uint8_t val);        
+uint8_t Rte_Read_FanMode(void);
+void Rte_Write_FanManualDuty(uint8_t val);  
+uint8_t Rte_Read_FanManualDuty(void);
+void Rte_Write_CoolState(uint8_t val);      
+uint8_t Rte_Read_CoolState(void);
+void Rte_Write_CoolFaults(uint8_t val);
+uint8_t Rte_Read_CoolFaults(void);
+void Rte_Write_FuseState(uint8_t val);
+uint8_t Rte_Read_FuseState(void);
+void Rte_Write_FuseSense(uint8_t val);
+uint8_t Rte_Read_FuseSense(void);
+void Rte_Write_SafetyCauses(uint8_t val);
+uint8_t Rte_Read_SafetyCauses(void);
+void Rte_Write_ConverterEnable(uint8_t val);
+uint8_t Rte_Read_ConverterEnable(void);
+void Rte_Write_SafetyState(uint8_t val);
+uint8_t Rte_Read_SafetyState(void);
+void Rte_Write_RecoveryMode(uint8_t val);
+uint8_t Rte_Read_RecoveryMode(void);
+void Rte_Write_SafetyLatched(uint8_t val);
+uint8_t Rte_Read_SafetyLatched(void);
+void Rte_Write_SafetyResetReq(uint8_t val);
+uint8_t Rte_Read_SafetyResetReq(void);
+void Rte_Write_SafetyRestarts(uint8_t val);
+uint8_t Rte_Read_SafetyRestarts(void);
+
+
+#endif /* RTE_H */
