@@ -159,34 +159,34 @@ void SWC_SafetyMonitor_Runnable(float v_in, float v_out, float i_in, float i_out
 	{
 		act  = (uint8_t)((s_active & k_cause[i].mask) != 0U);
 		cond = Safe_Cond(i, act);
-	}
-
-	if (act == 0U)
-	{
-		if (cond != 0U) 
-		{ 
-			if (++s_cnt[i] >= k_cause[i].set_calls) 
+	
+		if (act == 0U)
+		{
+			if (cond != 0U) 
 			{ 
-				s_active |= k_cause[i].mask; s_cnt[i] = 0U; 
-			} 
-		}
-		else            
-		{ 
-			s_cnt[i] = 0U; 
-		}
-	}
-	else
-	{
-		if (cond == 0U) 
-		{ 
-			if (++s_cnt[i] >= k_cause[i].clr_calls) 
+				if (++s_cnt[i] >= k_cause[i].set_calls) 
+				{ 
+					s_active |= k_cause[i].mask; s_cnt[i] = 0U; 
+				} 
+			}
+			else            
 			{ 
-				s_active &= (uint8_t)~k_cause[i].mask; s_cnt[i] = 0U; 
-			} 
+				s_cnt[i] = 0U; 
+			}
 		}
-		else            
-		{ 
-			s_cnt[i] = 0U; 
+		else
+		{
+			if (cond == 0U) 
+			{ 
+				if (++s_cnt[i] >= k_cause[i].clr_calls) 
+				{ 
+					s_active &= (uint8_t)~k_cause[i].mask; s_cnt[i] = 0U; 
+				} 
+			}
+			else            
+			{ 
+				s_cnt[i] = 0U; 
+			}
 		}
 	}
 
