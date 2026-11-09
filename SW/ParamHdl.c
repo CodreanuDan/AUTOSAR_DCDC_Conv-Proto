@@ -4,9 +4,9 @@
  * @author: Codreanu Dan ( Senior Project Arhitect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
 
-#include <avr/eeprom.h>
 #include <string.h>
 #include "ParamHdl.h"
+#include "NvM.h"
 #include "Rte.h"
 
 /*******************************************************
@@ -17,13 +17,11 @@
 #define PH_KIND_ASCII   1U   /* 0x20..0x7E per byte             */
 #define PH_KIND_RAW     2U   /* any bytes                       */
 #define PH_KIND_U8      3U   /* 1 byte with min / max           */
-#define PH_KIND_STATUS  4U   /* runtime status, read-only       */
+#define PH_KIND_U16     4U   /* 2 bytes little endian, min / max */
+#define PH_KIND_STATUS  5U   /* runtime status, read-only       */
 
-#define PH_BLK_ID       0U
-#define PH_BLK_CODING   1U
-#define PH_ID_LEN       40U
-#define PH_IMG_MAX      48U
-#define PARAMHDL_CODING_VERSION 0x01U
+#define PH_BLK_ID       0U   /* = NVM_BLK_IDENT  */
+#define PH_BLK_CODING   1U   /* = NVM_BLK_CODING */
 
 typedef struct {
     uint16_t    did;
@@ -31,9 +29,10 @@ typedef struct {
     uint8_t     offset;     /* inside the block data area */
     uint8_t     size;
     uint8_t     kind;
-    uint8_t     min;
-    uint8_t     max;
-    uint8_t     def;        /* default for U8 */
+    uint8_t     id;         /* ParamHdl_CodingIdType for coding entries */
+    uint16_t    min;
+    uint16_t    max;
+    uint16_t    def;        /* default for U8 / U16 */
     const char *def_str;    /* default for ASCII / RAW */
 } Ph_DidCfg;
 
