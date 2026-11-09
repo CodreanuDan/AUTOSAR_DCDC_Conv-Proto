@@ -25,6 +25,7 @@
 #include "IoHwAb.h"
 #include "I2cSf.h"
 #include "Sht21Sf.h"
+#include "ParamHdl.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -73,6 +74,7 @@ void EcuM_Init(void)
     /* 4. Initialize Non-Volatile Memory & Restore Persistent Configurations */
     NvM_Init();
     NvM_ReadAll();
+	ParamHdl_Init();      /* after NvM: coding defaults to RTE (RecoveryMode, FanMode) */
 
     /* 5. Initialize Communication and Diagnostic Modules */
     Uart_Init(DEFAULT_BAUD_RATE);

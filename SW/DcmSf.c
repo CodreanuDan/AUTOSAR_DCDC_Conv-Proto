@@ -14,6 +14,7 @@
 #include "IoHwAb.h"
 #include "EcuM.h"
 #include "SafetyEvents.h"
+#include "ParamHdl.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -336,6 +337,18 @@ static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr)
     /* Extract 16-bit DID from request frame (Bytes 1 and 2) */
     requested_did = (uint16_t)(((uint16_t)req_ptr[1] << 8U) | req_ptr[2]);
 
+	/* Handle data from ParamHdl - CODING DATA */
+	uint8_t ph_size, ph_rw;
+	uint8_t ph_resp[9];
+	if (ParamHdl_IsParamDid(requested_did, &ph_size, &ph_rw))
+	{
+		ph_resp[0] = req_ptr[1];
+		ph_resp[1] = req_ptr[2];
+		(void)ParamHdl_ReadDid(requested_did, &ph_resp[2]);
+		Dcm_SendPositiveResponse(UDS_SID_READ_DATA_BY_ID, ph_resp, (uint8_t)(ph_size + 2U));
+		return;
+	}
+
     for (i = 0U; i < DCM_TOTAL_DIDS; i++)
     {
         if (s_dcm_did_table[i].did == requested_did)
@@ -404,6 +417,20 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
 	if ((EcuM_GetState() == ECUM_STATE_SLEEP) && (requested_did != 0x010AU))
 	{
 		Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
+		return;
+	}
+
+	/* Handle data from ParamHdl - CODING DATA */
+	uint8_t ph_size, ph_rw, ph_nrc;
+	uint8_t ph_resp[9];
+	if (ParamHdl_IsParamDid(requested_did, &ph_size, &ph_rw))
+	{
+		ph_nrc = ParamHdl_WriteDid(requested_did, &req_ptr[3]);
+		if (ph_nrc != 0U) { Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, ph_nrc); return; }
+		ph_resp[0] = req_ptr[1];
+		ph_resp[1] = req_ptr[2];
+		(void)ParamHdl_ReadDid(requested_did, &ph_resp[2]);
+		Dcm_SendPositiveResponse(UDS_SID_WRITE_DATA_BY_ID, ph_resp, (uint8_t)(ph_size + 2U));
 		return;
 	}
 

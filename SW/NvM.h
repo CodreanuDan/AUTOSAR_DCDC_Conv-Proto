@@ -20,6 +20,23 @@ extern "C" {
 #endif
 
 /*******************************************************
+ *            TYPE DEFINITIONS & MACROS
+ *******************************************************/
+
+#define NVM_LEN_IDENT    40U
+#define NVM_LEN_CODING   13U
+
+typedef enum
+{
+    NVM_BLK_IDENT = 0,
+    NVM_BLK_CODING,
+    NVM_NUM_BLOCKS
+} NvM_BlockIdType;
+
+#define NVM_E_OK        0U
+#define NVM_E_INVALID   1U   /* blank EEPROM, wrong layout version or CRC error */
+
+/*******************************************************
  *            START OF FUNCTION PROTOTYPES
  *******************************************************/
 
@@ -46,6 +63,12 @@ void NvM_ReadAll(void);
  * @return: void
  */
 void NvM_WriteAll(void);
+
+/* Reads one managed block. Returns NVM_E_OK only if layout version and CRC match. */
+uint8_t NvM_ReadBlock(NvM_BlockIdType id, uint8_t *data);
+
+/* Writes one managed block with layout version and CRC. */
+void NvM_WriteBlock(NvM_BlockIdType id, const uint8_t *data);
 
 /************* END OF FUNCTION PROTOTYPES ************/
 
