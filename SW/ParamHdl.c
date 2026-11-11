@@ -46,7 +46,7 @@ static const char PS_VIN1[]  PROGMEM = "DCDC000";
 static const char PS_VIN2[]  PROGMEM = "0000000";
 static const char PS_VIN3[]  PROGMEM = "001";
 
-static const Ph_DidCfg k_did[] =
+static const Ph_DidCfg k_did[] PROGMEM =
 {
     /* ---- Identification ---- */
     { 0xF187U, PH_BLK_ID,  0U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_TEIL   },  /* Teilenummer */
@@ -80,6 +80,16 @@ static uint16_t s_active[PARAM_COUNT];        /* latched at init, changes only a
 static uint8_t  s_status = 0U;                /* bit0 ident on defaults, bit1 coding on defaults */
 
 /********************************************************
+ *             LOCAL FUNCTION PROTOTYPES
+ ********************************************************/
+static const Ph_DidCfg *Ph_Get(uint8_t i);
+static uint8_t Ph_Find(uint16_t did);
+static uint8_t Ph_IsNumeric(uint8_t kind);
+static uint16_t Ph_ImgValue(const Ph_DidCfg *c);
+static void Ph_LoadDefaults(uint8_t b);
+static const Ph_DidCfg *Ph_Get(uint8_t i);
+
+/********************************************************
  *             START OF FUNCTION DEFINITIONS
  ********************************************************/
 
@@ -88,7 +98,7 @@ static uint8_t Ph_Find(uint16_t did)
     uint8_t i;
     for (i = 0U; i < PH_NUM_DIDS; i++) 
 	{ 
-		if (k_did[i].did == did) 
+		if (pgm_read_word(&k_did[i].did) == did)
 		{ 
 			return i; 
 		} 
@@ -135,7 +145,7 @@ static void Ph_LoadDefaults(uint8_t b)
             len = (uint8_t)strlen(Ph_Get(i)->def_str);
             for (j = 0U; j < Ph_Get(i)->size; j++)
             {
-                s_img[b][Ph_Get(i)->offset + j] = (j < len) ? (uint8_t)Ph_Get(i)->def_str[j] : ((Ph_Get(i)->kind == PH_KIND_ASCII) ? (uint8_t)' ' : 0U);
+                s_img[b][Ph_Get(i)->offset + j] = (j < len) ? (uint8_t)pgm_read_byte(Ph_Get(i)->def_str + j) : ((Ph_Get(i)->kind == PH_KIND_ASCII) ? (uint8_t)' ' : 0U);
             }
         }
     }
@@ -143,8 +153,8 @@ static void Ph_LoadDefaults(uint8_t b)
 
 static const Ph_DidCfg *Ph_Get(uint8_t i)
 {
-    static Ph_DidCfg s_cfg;                       /* one 16 B RAM scratch */
-    memcpy_P(&s_cfg, Ph_Get(i), sizeof(Ph_DidCfg));
+    static Ph_DidCfg s_cfg;
+    memcpy_P(&s_cfg, &k_did[i], sizeof(Ph_DidCfg)); /* one 16 B RAM scratch */
     return &s_cfg;
 }
 
@@ -171,7 +181,7 @@ void ParamHdl_Init(void)
         }
     }
 
-    for (i = 0U; i < (uint8_t)PH_NUM_DIDS; i++) 
+    for (i = 0U; i < (uint8_t)PARAM_COUNT; i++)
 	{ 
 		Rte_Write_CodingParam(i, s_active[i]); 
 	}
