@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include <avr/pgmspace.h>
 #include "ParamHdl.h"
 #include "NvM.h"
 #include "Rte.h"
@@ -36,16 +37,25 @@ typedef struct {
     const char *def_str;    /* default for ASCII / RAW */
 } Ph_DidCfg;
 
+/* Moved to PROGMEM t0 save RAM space */
+static const char PS_TEIL[]  PROGMEM = "DCDC001";
+static const char PS_HWNR[]  PROGMEM = "DCDCHW1";
+static const char PS_HWVER[] PROGMEM = "\x01";
+static const char PS_SERIAL[] PROGMEM = "SN00000";
+static const char PS_VIN1[]  PROGMEM = "DCDC000";
+static const char PS_VIN2[]  PROGMEM = "0000000";
+static const char PS_VIN3[]  PROGMEM = "001";
+
 static const Ph_DidCfg k_did[] =
 {
     /* ---- Identification ---- */
-    { 0xF187U, PH_BLK_ID,  0U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "DCDC001" },  /* Teilenummer */
-    { 0xF191U, PH_BLK_ID,  7U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "DCDCHW1" },  /* HW number   */
-    { 0xF193U, PH_BLK_ID, 14U, 2U, PH_KIND_RAW,   0U, 0U, 0U, 0U, "\x01"    },  /* HW version  */
-    { 0xF18CU, PH_BLK_ID, 16U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "SN00000" },  /* Serial      */
-    { 0xF190U, PH_BLK_ID, 23U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "DCDC000" },  /* pseudo-VIN 1..7   */
-    { 0xF1A1U, PH_BLK_ID, 30U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "0000000" },  /* pseudo-VIN 8..14  */
-    { 0xF1A2U, PH_BLK_ID, 37U, 3U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, "001"     },  /* pseudo-VIN 15..17 */
+    { 0xF187U, PH_BLK_ID,  0U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_TEIL   },  /* Teilenummer */
+    { 0xF191U, PH_BLK_ID,  7U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_HWNR   },  /* HW number   */
+    { 0xF193U, PH_BLK_ID, 14U, 2U, PH_KIND_RAW,   0U, 0U, 0U, 0U, PS_HWVER  },  /* HW version  */
+    { 0xF18CU, PH_BLK_ID, 16U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_SERIAL },  /* Serial      */
+    { 0xF190U, PH_BLK_ID, 23U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_VIN1   },  /* pseudo-VIN 1..7   */
+    { 0xF1A1U, PH_BLK_ID, 30U, 7U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_VIN2   },  /* pseudo-VIN 8..14  */
+    { 0xF1A2U, PH_BLK_ID, 37U, 3U, PH_KIND_ASCII, 0U, 0U, 0U, 0U, PS_VIN3   },  /* pseudo-VIN 15..17 */
     { 0xF189U, 0U, 0U, 3U, PH_KIND_CONST,  0U, 0U, 0U, 0U, 0 },                 /* SW version  */
     { 0xF1F0U, 0U, 0U, 1U, PH_KIND_STATUS, 0U, 0U, 0U, 0U, 0 },                 /* status: bit0 ident defaults, bit1 coding defaults */
 
@@ -107,28 +117,35 @@ static void Ph_LoadDefaults(uint8_t b)
     memset(s_img[b], 0, NVM_LEN_IDENT);
     for (i = 0U; i < PH_NUM_DIDS; i++)
     {
-        if ((k_did[i].block != b) || (k_did[i].kind == PH_KIND_CONST) || (k_did[i].kind == PH_KIND_STATUS)) 
+        if ((Ph_Get(i)->block != b) || (Ph_Get(i)->kind == PH_KIND_CONST) || (Ph_Get(i)->kind == PH_KIND_STATUS)) 
 		{ 
 			continue; 
 		}
 
-        if (Ph_IsNumeric(k_did[i].kind) != 0U)
+        if (Ph_IsNumeric(Ph_Get(i)->kind) != 0U)
         {
-            s_img[b][k_did[i].offset] = (uint8_t)(k_did[i].def & 0xFFU);
-            if (k_did[i].size == 2U) 
+            s_img[b][Ph_Get(i)->offset] = (uint8_t)(Ph_Get(i)->def & 0xFFU);
+            if (Ph_Get(i)->size == 2U) 
 			{ 
-				s_img[b][k_did[i].offset + 1U] = (uint8_t)(k_did[i].def >> 8U); 
+				s_img[b][Ph_Get(i)->offset + 1U] = (uint8_t)(Ph_Get(i)->def >> 8U); 
 			}
         }
         else
         {
-            len = (uint8_t)strlen(k_did[i].def_str);
-            for (j = 0U; j < k_did[i].size; j++)
+            len = (uint8_t)strlen(Ph_Get(i)->def_str);
+            for (j = 0U; j < Ph_Get(i)->size; j++)
             {
-                s_img[b][k_did[i].offset + j] = (j < len) ? (uint8_t)k_did[i].def_str[j] : ((k_did[i].kind == PH_KIND_ASCII) ? (uint8_t)' ' : 0U);
+                s_img[b][Ph_Get(i)->offset + j] = (j < len) ? (uint8_t)Ph_Get(i)->def_str[j] : ((Ph_Get(i)->kind == PH_KIND_ASCII) ? (uint8_t)' ' : 0U);
             }
         }
     }
+}
+
+static const Ph_DidCfg *Ph_Get(uint8_t i)
+{
+    static Ph_DidCfg s_cfg;                       /* one 16 B RAM scratch */
+    memcpy_P(&s_cfg, Ph_Get(i), sizeof(Ph_DidCfg));
+    return &s_cfg;
 }
 
 void ParamHdl_Init(void)
@@ -148,9 +165,9 @@ void ParamHdl_Init(void)
 
     for (i = 0U; i < PH_NUM_DIDS; i++)
     {
-        if ((k_did[i].block == PH_BLK_CODING) && (Ph_IsNumeric(k_did[i].kind) != 0U))
+        if ((Ph_Get(i)->block == PH_BLK_CODING) && (Ph_IsNumeric(Ph_Get(i)->kind) != 0U))
         {
-            s_active[k_did[i].id] = Ph_ImgValue(&k_did[i]);
+            s_active[Ph_Get(i)->id] = Ph_ImgValue(Ph_Get(i));
         }
     }
 
@@ -171,8 +188,8 @@ bool ParamHdl_IsParamDid(uint16_t did, uint8_t *size, uint8_t *writable)
 	{ 
 		return false; 
 	}
-    *size     = k_did[i].size;
-    *writable = (uint8_t)(((k_did[i].kind == PH_KIND_CONST) || (k_did[i].kind == PH_KIND_STATUS)) ? 0U : 1U);
+    *size     = Ph_Get(i)->size;
+    *writable = (uint8_t)(((Ph_Get(i)->kind == PH_KIND_CONST) || (Ph_Get(i)->kind == PH_KIND_STATUS)) ? 0U : 1U);
     return true;
 }
 
@@ -184,19 +201,19 @@ uint8_t ParamHdl_ReadDid(uint16_t did, uint8_t *out)
 		return PARAMHDL_NRC_OOR; 
 	}
 
-    if (k_did[i].kind == PH_KIND_CONST)
+    if (Ph_Get(i)->kind == PH_KIND_CONST)
     {
         out[0] = PARAMHDL_SW_MAJOR; out[1] = PARAMHDL_SW_MINOR; out[2] = PARAMHDL_SW_PATCH;
     }
-    else if (k_did[i].kind == PH_KIND_STATUS)
+    else if (Ph_Get(i)->kind == PH_KIND_STATUS)
     {
         out[0] = s_status;
     }
     else
     {
-        for (j = 0U; j < k_did[i].size; j++) 
+        for (j = 0U; j < Ph_Get(i)->size; j++) 
 		{ 
-			out[j] = s_img[k_did[i].block][k_did[i].offset + j]; 
+			out[j] = s_img[Ph_Get(i)->block][Ph_Get(i)->offset + j]; 
 		}
     }
     return 0U;
@@ -206,27 +223,30 @@ uint8_t ParamHdl_WriteDid(uint16_t did, const uint8_t *in)
 {
     uint8_t i = Ph_Find(did), j;
     uint16_t v;
-    if (i == 0xFFU) { return PARAMHDL_NRC_OOR; }
-    if ((k_did[i].kind == PH_KIND_CONST) || (k_did[i].kind == PH_KIND_STATUS)) 
+    if (i == 0xFFU) 
+	{ 
+		return PARAMHDL_NRC_OOR; 
+	}
+    if ((Ph_Get(i)->kind == PH_KIND_CONST) || (Ph_Get(i)->kind == PH_KIND_STATUS)) 
 	{ 
 		return PARAMHDL_NRC_COND; 
 	}
 
-    if (Ph_IsNumeric(k_did[i].kind) != 0U)
+    if (Ph_IsNumeric(Ph_Get(i)->kind) != 0U)
     {
         v = in[0];
-        if (k_did[i].size == 2U) 
+        if (Ph_Get(i)->size == 2U) 
 		{ 
 			v |= (uint16_t)((uint16_t)in[1] << 8U); 
 		}
-        if ((v < k_did[i].min) || (v > k_did[i].max)) 
+        if ((v < Ph_Get(i)->min) || (v > Ph_Get(i)->max)) 
 		{ 
 			return PARAMHDL_NRC_OOR; 
 		}
     }
-    else if (k_did[i].kind == PH_KIND_ASCII)
+    else if (Ph_Get(i)->kind == PH_KIND_ASCII)
     {
-        for (j = 0U; j < k_did[i].size; j++) 
+        for (j = 0U; j < Ph_Get(i)->size; j++) 
 		{ 
 			if ((in[j] < 0x20U) || (in[j] > 0x7EU)) 
 			{ 
@@ -235,12 +255,12 @@ uint8_t ParamHdl_WriteDid(uint16_t did, const uint8_t *in)
 		}
     }
 
-    for (j = 0U; j < k_did[i].size; j++) 
+    for (j = 0U; j < Ph_Get(i)->size; j++) 
 	{ 
-		s_img[k_did[i].block][k_did[i].offset + j] = in[j]; 
+		s_img[Ph_Get(i)->block][Ph_Get(i)->offset + j] = in[j]; 
 	}
 
-    NvM_WriteBlock((NvM_BlockIdType)k_did[i].block, s_img[k_did[i].block]);   /* stored now, active after reset */
+    NvM_WriteBlock((NvM_BlockIdType)Ph_Get(i)->block, s_img[Ph_Get(i)->block]);   /* stored now, active after reset */
     return 0U;
 }
 
