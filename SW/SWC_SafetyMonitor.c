@@ -226,7 +226,10 @@ void SWC_SafetyMonitor_Runnable(float v_in, float v_out, float i_in, float i_out
             enable = 0U;
             if (s_trips == 0U) s_win_calls = 0U;
             s_trips++;
-            if (s_trips >= PARAM_RETRY_LIMIT) s_escalated = 1U;
+            if (s_trips >= (uint8_t)Rte_Read_CodingParam(PARAM_RETRY_LIMIT)) 
+			{
+				s_escalated = 1U;
+			}
         }
     }
     else
