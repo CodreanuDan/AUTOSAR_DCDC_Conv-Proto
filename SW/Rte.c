@@ -57,6 +57,11 @@ static uint8_t RTE_VAR_SafetyLatched = 0; /* causes that caused a shutdown */
 static uint8_t RTE_VAR_SafetyResetReq = 0; /* set by DCM, consumed by the SWC */
 static uint8_t RTE_VAR_SafetyRestarts = 0; /* count of AUTO restarts */
 
+#define RTE_CODING_COUNT 16U
+static uint16_t RTE_VAR_CodingParam[RTE_CODING_COUNT];
+
+
+
 /* =====================================================================
  * RTE API IMPLEMENTATIONS (Read & Write Functions)
  * ===================================================================== */
@@ -529,4 +534,17 @@ void Rte_Write_SafetyRestarts(uint8_t val)
 uint8_t Rte_Read_SafetyRestarts(void)
 {
 	return RTE_VAR_SafetyRestarts;
+}
+
+void Rte_Write_CodingParam(uint8_t id, uint16_t val) 
+{ 
+	if (id < RTE_CODING_COUNT) 
+	{ 
+		RTE_VAR_CodingParam[id] = val; 
+	} 
+}
+
+uint16_t Rte_Read_CodingParam(uint8_t id)            
+{ 
+	return (id < RTE_CODING_COUNT) ? RTE_VAR_CodingParam[id] : 0U; 
 }

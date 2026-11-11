@@ -154,6 +154,11 @@ void ParamHdl_Init(void)
         }
     }
 
+    for (i = 0U; i < (uint8_t)PH_NUM_DIDS; i++) 
+	{ 
+		Rte_Write_CodingParam(i, s_active[i]); 
+	}
+
     Rte_Write_RecoveryMode((uint8_t)s_active[PARAM_RECOVERY_MODE_DEF]);
     Rte_Write_FanMode((uint8_t)s_active[PARAM_FAN_MODE_DEF]);
     Rte_Write_TargetFrequency(s_active[PARAM_PWM_FREQ_HZ]);

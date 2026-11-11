@@ -6,6 +6,7 @@
 
 #include "SWC_PidController.h"
 #include "Rte.h"
+#include "ParamHdl.h"
 #include "StdTypes.h"
 
 /*******************************************************
@@ -14,7 +15,7 @@
 
 #define PID_DT_S        0.01f    /* real task period: 10 ms */
 
-#define BOOST_FF_GAIN         1.0f     /* start at 1.0 (ideal), raise toward ~1.5 after calibration */
+#define BOOST_FF_GAIN   1.0f     /* start at 1.0 (ideal), raise toward ~1.5 after calibration */
 #define BOOST_OUT_MIN   0.0f
 #define BOOST_OUT_MAX   85.0f    /* below the collapse point; tune from your plot */
 
@@ -132,7 +133,18 @@ void SWC_PidController_Runnable(float v_in, float v_out)
     bool pid_disabled = Rte_Read_PidDisableFlag();
     uint16_t target_setpoint = Rte_Read_PidTargetSetpoint();
     float current_setpoint_volts = (float)target_setpoint;
-
+    
+	uint16_t sp_min = Rte_Read_CodingParam(PARAM_SETPOINT_MIN_V);
+	uint16_t sp_max = Rte_Read_CodingParam(PARAM_SETPOINT_MAX_V);
+	if (target_setpoint < sp_min) 
+	{ 
+		target_setpoint = sp_min; 
+	}
+	if (target_setpoint > sp_max) 
+	{ 
+		target_setpoint = sp_max; 
+	}
+    
 
     /* 3. Execute PID controller loop if enabled */
     if (pid_disabled == FALSE)

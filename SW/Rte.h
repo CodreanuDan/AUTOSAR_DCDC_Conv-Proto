@@ -115,6 +115,7 @@ void Rte_Write_SafetyResetReq(uint8_t val);
 uint8_t Rte_Read_SafetyResetReq(void);
 void Rte_Write_SafetyRestarts(uint8_t val);
 uint8_t Rte_Read_SafetyRestarts(void);
-
+void     Rte_Write_CodingParam(uint8_t id, uint16_t val);
+uint16_t Rte_Read_CodingParam(uint8_t id);
 
 #endif /* RTE_H */

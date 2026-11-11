@@ -1,6 +1,7 @@
 #include "SWC_SafetyMonitor.h"
 #include "SafetyEvents.h"
 #include "Rte.h"
+#include "ParamHdl.h"
 
 /*******************************************************
  *            STATIC LOCAL VARIABLES (ASW Cache)
@@ -94,22 +95,32 @@ static uint8_t Safe_Cond(uint8_t idx, uint8_t was)
     {
 		/* SAFE_CAUSE_OVERCURRENT_IN */
         case 0U: 
-			return (s_iin  > (was ? 7.0f : 8.0f)) ? 1U : 0U;
+			{ 
+				float lim = (float)Rte_Read_CodingParam(PARAM_IIN_SHUTDOWN_A10) / 10.0f;
+                return (s_iin  > (was ? (lim - 1.0f) : lim)) ? 1U : 0U; 
+			}
 		/* SAFE_CAUSE_OVERCURRENT_OUT */
         case 1U: 
-			return (s_iout > (was ? 7.0f : 8.0f)) ? 1U : 0U;
+			{ 
+				float lim = (float)Rte_Read_CodingParam(PARAM_IOUT_DTC_A10) / 10.0f;
+                return (s_iout > (was ? (lim - 1.0f) : lim)) ? 1U : 0U; 
+			}
 		/* SAFE_CAUSE_OVERVOLT_IN */
         case 2U: 
-			return (s_vin  > (was ? 15.5f : 16.0f)) ? 1U : 0U;
+			{ 
+				float lim = (float)Rte_Read_CodingParam(PARAM_VIN_OV_DTC_V);
+                return (s_vin  > (was ? (lim - 0.5f) : lim)) ? 1U : 0U; 
+			}
 		/* SAFE_CAUSE_UNDERVOLT_IN */
         case 3U:
-			{
+			{ 
+				float lim = (float)Rte_Read_CodingParam(PARAM_VIN_UV_DTC_V);
 				if (s_vin < 2.0f) 
-				{
+				{ 
 					/* no supply at all: not a brown-out */
-					return 0U;                    
+					return 0U; 
 				}
-				return (s_vin < (was ? 9.5f : 9.0f)) ? 1U : 0U;
+                return (s_vin < (was ? (lim + 0.5f) : lim)) ? 1U : 0U; 
 			}
 		/* SAFE_CAUSE_OVERVOLT_OUT */
         case 4U:
@@ -130,17 +141,22 @@ static uint8_t Safe_Cond(uint8_t idx, uint8_t was)
 			return (s_fuse_state == FUSE_STATE_BLOWN) ? 1U : 0U;
 		/* SAFE_CAUSE_OVERTEMP_CRIT */
         case 6U:
-			{
+			{ 
+				int16_t crit;
 				if (Rte_Read_Sht21Valid() == 0U) 
-				{
-					return was;    /* no data: keep state */
+				{ 
+					return was; /* no data: keep state */
 				}
-				t = Rte_Read_AmbTemp();                          /* 0.01 degC */
-				return (t >= (was ? 8000 : 10000)) ? 1U : 0U;
+				crit = (int16_t)((int16_t)Rte_Read_CodingParam(PARAM_OVERTEMP_CRIT_C) * 100);   /* 0.01 degC */
+				t = Rte_Read_AmbTemp(); 
+				return (t >= (was ? (int16_t)(crit - 2000) : crit)) ? 1U : 0U; 
 			}
 		/* SAFE_CAUSE_OVERVOLT_IN_CRIT */
         case 7U: 
-			return (s_vin > (was ? 23.0f : 24.0f)) ? 1U : 0U;
+			{ 
+				float lim = (float)Rte_Read_CodingParam(PARAM_VIN_SHUTDOWN_V);
+                return (s_vin > (was ? (lim - 1.0f) : lim)) ? 1U : 0U; 
+			}
         default: 
 			return 0U;
     }
@@ -210,7 +226,7 @@ void SWC_SafetyMonitor_Runnable(float v_in, float v_out, float i_in, float i_out
             enable = 0U;
             if (s_trips == 0U) s_win_calls = 0U;
             s_trips++;
-            if (s_trips >= SAFE_RETRY_MAX) s_escalated = 1U;
+            if (s_trips >= PARAM_RETRY_LIMIT) s_escalated = 1U;
         }
     }
     else
