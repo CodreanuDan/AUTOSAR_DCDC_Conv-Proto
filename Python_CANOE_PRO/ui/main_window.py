@@ -695,6 +695,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.active_adp_item["status"].setText("❌" if is_neg else "✅")
                 self.active_adp_item = None
                 
+            if hasattr(self, "bzd_tab"):
+                self.bzd_tab.on_response(packet)
+                
             self.hex_console.append(f'<span style="color: #888;">[{t}]</span> <span style="color: {color};">RX:</span> {" ".join([f"{b:02X}" for b in packet[:10]])} <span style="color: #f93;">{nrc_text}</span>')
             return
             
