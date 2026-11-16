@@ -3,6 +3,7 @@ import pyqtgraph as pg
 import serial
 import struct
 from core.serial_thread import SerialReaderThread
+from ui.bzd_tab import BzdTab
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config):
@@ -566,6 +567,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_config_file_text()
         self.main_tabs.addTab(config_viewer_tab, "Config Viewer")
         
+        # --- TAB F: BZD ---
+        self.bzd_tab = BzdTab(self.config, self.send_uds_payload)
+        self.main_tabs.addTab(self.bzd_tab, "BZD")
+        
+        
+        ############################################################################################################################
         self.rebuild_plots()
 
     def scan_com_porturi(self):
@@ -688,7 +695,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.active_adp_item["status"].setText("❌" if is_neg else "✅")
                 self.active_adp_item = None
                 
-            self.hex_console.append(f'<span style="color: #888;">[{t}]</span> <span style="color: {color};">RX:</span> {" ".join([f"{b:02X}" for b in packet[:9]])} <span style="color: #f93;">{nrc_text}</span>')
+            self.hex_console.append(f'<span style="color: #888;">[{t}]</span> <span style="color: {color};">RX:</span> {" ".join([f"{b:02X}" for b in packet[:10]])} <span style="color: #f93;">{nrc_text}</span>')
             return
             
         # 2. Gestionarea pachetelor ciclice pentru Trace Log (cu culori luate din config și limită de rânduri)
@@ -825,6 +832,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.hex_input.clear()
         except Exception as e:
             self.status_bar.showMessage(f"Eroare: {e}", 3000)
+
+    def send_uds_payload(self, payload):
+        """Sends one UDS request frame (used by the BZD tab). Returns False if not connected."""
+        if not (self.reader and getattr(self.reader, "ser", None) and self.reader.ser.is_open):
+            return False
+        packet = bytearray(12)
+        packet[:len(payload)] = payload
+        packet[10] = sum(packet[:10]) & 0xFF
+        packet[11] = 0x0D
+        written = self.reader.ser.write(packet)
+        self.reader.ser.flush()
+        self.reader.add_traffic(written)
+        self.hex_console.append(f'<span style="color: #888;">[{QtCore.QTime.currentTime().toString("hh:mm:ss.zzz")}]</span> <span style="color: #007acc;">TX:</span> {" ".join([f"{b:02X}" for b in payload])}')
+        return True
 
     def send_hex_manual(self, hex_str):
         self.hex_input.setText(hex_str)

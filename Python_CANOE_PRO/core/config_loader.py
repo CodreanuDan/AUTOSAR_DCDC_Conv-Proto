@@ -20,5 +20,6 @@ class ConfigLoader:
             "frames": cfg.get("Frame_Table", []),
             "routines": cfg.get("Routine_Table", []),
             "adaptations": cfg.get("DID_Table", []),
-            "dtc_table": cfg.get("DTC_Table", {})
+            "dtc_table": cfg.get("DTC_Table", {}),
+            "bzd": cfg.get("BZD_Table", []),
         }
