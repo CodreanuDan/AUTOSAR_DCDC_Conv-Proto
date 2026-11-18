@@ -201,23 +201,23 @@ DTC_Table:
 # 4. BZD Table 
 BZD_Table:
 - {group: "Identification", role: "partno", name: "Teilenummer",       did: "F187", size: 7, fmt: "ascii"}
-- {group: "Identification", role: "sw",     name: "SW version",        did: "F189", size: 3, fmt: "ver3"}
+- {group: "Identification", role: "sw",     name: "SW version",        did: "F189", size: 3, fmt: "ver3", ro: true}
 - {group: "Identification", role: "hwno",   name: "HW number",         did: "F191", size: 7, fmt: "ascii"}
 - {group: "Identification", role: "hwver",  name: "HW version",        did: "F193", size: 2, fmt: "ver2"}
 - {group: "Identification", role: "serial", name: "Serial number",     did: "F18C", size: 7, fmt: "ascii"}
 - {group: "Identification", join: "VIN",    name: "Pseudo-VIN 1-7",    did: "F190", size: 7, fmt: "ascii"}
 - {group: "Identification", join: "VIN",    name: "Pseudo-VIN 8-14",   did: "F1A1", size: 7, fmt: "ascii"}
 - {group: "Identification", join: "VIN",    name: "Pseudo-VIN 15-17",  did: "F1A2", size: 3, fmt: "ascii"}
-- {group: "Status", name: "Coding status",         did: "F1F0", size: 1, fmt: "codstat"}
-- {group: "Coding", name: "Setpoint min",          did: "0200", size: 1, fmt: "u8",  unit: "V"}
-- {group: "Coding", name: "Setpoint max",          did: "0201", size: 1, fmt: "u8",  unit: "V"}
-- {group: "Coding", name: "Iin shutdown",          did: "0202", size: 1, fmt: "u8",  scale: 0.1, unit: "A"}
-- {group: "Coding", name: "Iout DTC limit",        did: "0203", size: 1, fmt: "u8",  scale: 0.1, unit: "A"}
-- {group: "Coding", name: "Vin overvoltage DTC",   did: "0204", size: 1, fmt: "u8",  unit: "V"}
-- {group: "Coding", name: "Vin shutdown",          did: "0205", size: 1, fmt: "u8",  unit: "V"}
-- {group: "Coding", name: "Vin undervoltage DTC",  did: "0206", size: 1, fmt: "u8",  unit: "V"}
-- {group: "Coding", name: "Overtemp critical",     did: "0207", size: 1, fmt: "u8",  unit: "degC"}
-- {group: "Coding", name: "Recovery mode default", did: "0208", size: 1, fmt: "u8"}
-- {group: "Coding", name: "Fan mode default",      did: "0209", size: 1, fmt: "u8"}
-- {group: "Coding", name: "Retry limit",           did: "020A", size: 1, fmt: "u8"}
-- {group: "Coding", name: "PWM frequency",         did: "020B", size: 2, fmt: "u16", unit: "Hz"}
+- {group: "Status", name: "Coding status",         did: "F1F0", size: 1, fmt: "codstat", ro: true}
+- {group: "Coding", name: "Setpoint min",          did: "0200", size: 1, fmt: "u8",  unit: "V",    min: 1,   max: 30}
+- {group: "Coding", name: "Setpoint max",          did: "0201", size: 1, fmt: "u8",  unit: "V",    min: 5,   max: 35}
+- {group: "Coding", name: "Iin shutdown",          did: "0202", size: 1, fmt: "u8",  scale: 0.1, unit: "A", min: 2.0, max: 10.0}
+- {group: "Coding", name: "Iout DTC limit",        did: "0203", size: 1, fmt: "u8",  scale: 0.1, unit: "A", min: 2.0, max: 10.0}
+- {group: "Coding", name: "Vin overvoltage DTC",   did: "0204", size: 1, fmt: "u8",  unit: "V",    min: 12,  max: 20}
+- {group: "Coding", name: "Vin shutdown",          did: "0205", size: 1, fmt: "u8",  unit: "V",    min: 18,  max: 30}
+- {group: "Coding", name: "Vin undervoltage DTC",  did: "0206", size: 1, fmt: "u8",  unit: "V",    min: 5,   max: 12}
+- {group: "Coding", name: "Overtemp critical",     did: "0207", size: 1, fmt: "u8",  unit: "degC", min: 60,  max: 125}
+- {group: "Coding", name: "Recovery mode default", did: "0208", size: 1, fmt: "u8",  min: 0, max: 1}
+- {group: "Coding", name: "Fan mode default",      did: "0209", size: 1, fmt: "u8",  min: 0, max: 1}
+- {group: "Coding", name: "Retry limit",           did: "020A", size: 1, fmt: "u8",  min: 1, max: 10}
+- {group: "Coding", name: "PWM frequency",         did: "020B", size: 2, fmt: "u16", unit: "Hz",   min: 100, max: 1000}

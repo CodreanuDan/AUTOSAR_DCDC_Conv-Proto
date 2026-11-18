@@ -4,6 +4,8 @@ import serial
 import struct
 from core.serial_thread import SerialReaderThread
 from ui.bzd_tab import BzdTab
+from core.uds_client import UdsClient
+from ui.coding_tab import CodingTab
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config):
@@ -41,6 +43,8 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.init_ui()
         self.scan_com_porturi()
+        
+        self.uds = UdsClient(self.send_uds_payload_raw, {int(f["header"], 16) for f in frames}, self.config["nrc_dict"])
         
         # --- PRELUARE AUTOMATĂ PORT ȘI BAUDRATE DIN CONFIG (AICI ESTE LOCUL CORECT) ---
         raw_port = self.config.get('com_port', 4)
@@ -571,6 +575,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.bzd_tab = BzdTab(self.config, self.send_uds_payload)
         self.main_tabs.addTab(self.bzd_tab, "BZD")
         
+        # --- TAB G: BZD ---
+        self.coding_tab = CodingTab(self.config, self.uds)
+        self.main_tabs.addTab(self.coding_tab, "BZD")
         
         ############################################################################################################################
         self.rebuild_plots()
