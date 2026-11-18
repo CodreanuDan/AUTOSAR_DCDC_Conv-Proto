@@ -881,7 +881,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.active_adp_item = item_data
         item_data["status"].setText("⏳")
         self.send_hex_command()
-        self.main_tabs.setCurrentIndex(1)
+        #self.main_tabs.setCurrentIndex(1) // Skip showing the response in hex service
         
     def load_config_file_text(self):
             """Citește fișierul de configurare activ și îl afișează în tab-ul dedicat"""

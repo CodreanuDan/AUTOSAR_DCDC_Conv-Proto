@@ -37,7 +37,7 @@ Supported_Diagnostic_Services_Table: {
 Frame_Table:
 
   - header_hex: "AA"
-    name: "BO_cnvData_1_"
+    name: "BO_cnvData__1_"
     color: "#00E5FF"
     description: "ADC Raw Conversions & Measurements from input and output sensors"
     length: 12
@@ -49,7 +49,7 @@ Frame_Table:
       - { name: "SG_cnvData_1_AliveCt__", unit: "Ct", color: "#00bcd4", byte_offset: 9, size: 1, scaling: "direct" }
 
   - header_hex: "A2"
-    name: "BO_pwmData_1_"
+    name: "BO_pwmData__1_"
     color: "#76FF03"
     description: "PWM Channels & Frequency Status on DCC PWM Bridge"
     length: 12
@@ -61,7 +61,7 @@ Frame_Table:
       - { name: "SG_pwmData_1_AliveCt__", unit: "Ct", color: "#ffeb3b", byte_offset: 9, size: 1, scaling: "direct" }
 
   - header_hex: "A3"
-    name: "BO_pidInfo_1_"
+    name: "BO_pidInfo__1_"
     color: "#FFD600"
     description: "PID Controller & Converter State"
     length: 12
@@ -72,7 +72,7 @@ Frame_Table:
       - { name: "SG_pidInfo_1_AliveCt__", unit: "Ct", color: "#4fc1ff", byte_offset: 9, size: 1, scaling: "direct" }
 
   - header_hex: "A4"
-    name: "BO_actInfo_1_"
+    name: "BO_actInfo__1_"
     color: "#FF9100"
     description: "Relays and Actuators Status"
     length: 12
@@ -87,7 +87,7 @@ Frame_Table:
       - { name: "SG_actInfo_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct" }
 
   - header_hex: "A5"
-    name: "BO_demInfo_1_"
+    name: "BO_demInfo__1_"
     color: "#E040FB"
     description: "Diagnostic Fault Memory & DTC Status"
     length: 12
@@ -113,7 +113,7 @@ Frame_Table:
       - { name: "SG_coolData_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct" }
 
   - header_hex: "A7"
-    name: "BO_fanInfo_1_"
+    name: "BO_fanInfo__1_"
     color: "#76FF03"
     description: "Fan duty, mode, cooling state"
     length: 12
@@ -125,7 +125,7 @@ Frame_Table:
       - { name: "SG_fanInfo_1_Flags_", unit: "Flags", color: "#7c4dff", byte_offset: 5, size: 1, value_table: { 0: "NONE", 1: "SHT_OK", 2: "AFTERRUN", 3: "SHT_OK+AFTERRUN" }, scaling: "direct" }
       - { name: "SG_fanInfo_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct" }
   - header_hex: "A8"
-    name: "BO_safetyInfo_1_"
+    name: "BO_safeInfo_1_"
     color: "#ff5252"
     description: "Safety state, recovery, causes"
     length: 12
