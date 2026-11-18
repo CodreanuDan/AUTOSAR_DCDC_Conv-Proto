@@ -575,10 +575,11 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # --- TAB G: CPTOOL ---
         headers = {int(f["header_hex"], 16) for f in self.config["frames"]}
-        self.uds = UdsClient(self.send_uds_payload_raw, {int(f["header"], 16) for f in frames}, self.config["nrc_dict"])
+        headers = {int(f["header_hex"], 16) for f in self.config["frames"]}
+        self.uds = UdsClient(self.send_uds_payload_raw, headers, self.config["nrc_dict"])
         self.coding_tab = CodingTab(self.config, self.uds)
         self.main_tabs.addTab(self.coding_tab, "Coding")
-        
+
         ############################################################################################################################
         self.rebuild_plots()
 
