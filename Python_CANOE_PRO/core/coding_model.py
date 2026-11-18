@@ -81,6 +81,8 @@ class CodingModel:
         self.dataset_name = ""
         self.dataset_path = ""
         self.errors = []           # file level errors
+        self.extra_errors = []     # errors of the optional serial / VIN input
+        self.extras = {"serial": "", "vin": ""}
         self.loaded = False
 
     # -------------------------------------------------------- dataset
@@ -125,12 +127,43 @@ class CodingModel:
                 row.problem = str(e)
                 self.errors.append(f"{row.did_txt} {row.name}: {e}")
         self.loaded = True
+        self._apply_extras()
         self.evaluate()
         return True
 
+    # --------------------------------------- optional per-ECU values
+    def set_extras(self, serial="", vin=""):
+        """Serial number (7 characters) and pseudo-VIN (17 characters) are per ECU, not part of the dataset.
+        They are coded only when filled in."""
+        self.extras = {"serial": serial.strip(), "vin": vin.strip()}
+        if self.loaded:
+            for r in self.rows:
+                if r.did_txt in ("F18C", "F190", "F1A1", "F1A2") and r.expected_txt.startswith("\u2192"):
+                    r.expected, r.expected_txt, r.problem = None, "", ""
+            self._apply_extras()
+            self.evaluate()
+
+    def _apply_extras(self):
+        self.extra_errors = []
+        by_did = {r.did_txt: r for r in self.rows}
+        parts = []
+        if self.extras["serial"]:
+            parts.append(("Serial number", self.extras["serial"], [("F18C", 0, 7)]))
+        if self.extras["vin"]:
+            parts.append(("Pseudo-VIN", self.extras["vin"], [("F190", 0, 7), ("F1A1", 7, 14), ("F1A2", 14, 17)]))
+        for label, text, slices in parts:
+            need = slices[-1][2]
+            if len(text) != need or any(not 0x20 <= ord(c) <= 0x7E for c in text):
+                self.extra_errors.append(f"{label}: exactly {need} printable ASCII characters needed")
+                continue
+            for did, a, b in slices:
+                row = by_did.get(did)
+                if row is not None:
+                    row.expected, row.expected_txt, row.problem = text[a:b].encode("ascii"), "\u2192" + text[a:b], ""
+
     @property
     def dataset_valid(self):
-        return self.loaded and not self.errors
+        return self.loaded and not self.errors and not self.extra_errors
 
     # ------------------------------------------------------- compare
     def evaluate(self):

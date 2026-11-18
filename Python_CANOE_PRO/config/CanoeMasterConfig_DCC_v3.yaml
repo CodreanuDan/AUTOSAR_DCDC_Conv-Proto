@@ -1,11 +1,11 @@
 ####################################################################################
 #
-#     DC_DC_Analyzer_Pro CANoe Config file ---v2---
+#     DC_DC_Analyzer_Pro CANoe Config file ---v3---
 #
 ####################################################################################
 
 # --- General data ---
-Project_name: "DCDC_AnalyzerPro_DiagnosticDebug_Cfg2"
+Project_name: "DCDC_AnalyzerPro_DiagnosticDebug_Cfg3"
 COM_port: 4
 COM_baudrate: 57600
 

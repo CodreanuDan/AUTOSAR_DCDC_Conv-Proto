@@ -690,6 +690,8 @@ class MainWindow(QtWidgets.QMainWindow):
         return " ".join(formatted)
 
     def log_data_frames(self, frame_type, packet):
+        if frame_type != "CRC_ERR" and hasattr(self, "uds"):
+            self.uds.feed(packet)
         t = QtCore.QTime.currentTime().toString("hh:mm:ss.zzz")
         hex_str = " ".join([f"{b:02X}" for b in packet])
         
@@ -709,9 +711,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.hex_console.append(f'<span style="color: #888;">[{t}]</span> <span style="color: {color};">RX:</span> {" ".join([f"{b:02X}" for b in packet[:10]])} <span style="color: #f93;">{nrc_text}</span>')
             return
     
-        if frame_type != "CRC_ERR" and hasattr(self, "uds"):
-            self.uds.feed(packet)          # every valid packet: cyclic frames and UDS responses
-            
         # 2. Gestionarea pachetelor ciclice pentru Trace Log (cu culori luate din config și limită de rânduri)
         frame_color = "#4EC9B0"
         for frame in self.config['frames']:

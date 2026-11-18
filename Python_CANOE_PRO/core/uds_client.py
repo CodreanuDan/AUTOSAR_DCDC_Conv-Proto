@@ -72,6 +72,10 @@ class UdsClient:
         self._frames = {}                 # header -> (monotonic time, packet)
         self._dem = None                  # list while a 19 02 read is collecting
 
+    def set_log(self, log):
+        """Sets (or clears with None) the trace callback. It is called from the worker thread."""
+        self._log = log or (lambda text: None)
+
     # ------------------------------------------------------------- input
     def feed(self, packet):
         """Thread-safe. Call for every valid 12-byte packet that arrives (cyclic frame or UDS response)."""
@@ -97,6 +101,7 @@ class UdsClient:
                 self._resp.get_nowait()
             except queue.Empty:
                 break
+        self._log("TX " + bytes(payload).hex(" ").upper())
         if not self._send(bytes(payload)):
             raise UdsError("not connected")
         sid = payload[0]
@@ -110,8 +115,10 @@ class UdsClient:
             except queue.Empty:
                 raise UdsTimeout(f"no response to {bytes(payload).hex(' ').upper()}")
             if pkt[0] == 0x7F and pkt[1] == sid:
+                self._log("RX " + pkt[:10].hex(" ").upper())
                 raise UdsNegative(sid, pkt[2], self._nrc.get(f"0x{pkt[2]:02X}", ""))
             if pkt[0] == sid + 0x40 and (match is None or match(pkt)):
+                self._log("RX " + pkt[:10].hex(" ").upper())
                 return pkt
             # anything else is a late answer to an earlier request: ignore
 
