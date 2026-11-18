@@ -734,6 +734,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if dtc1_code != "0x000000" and dtc1_status > 0: self.batch_dtcs[dtc1_code] = dtc1_status
             if dtc2_code != "0x000000" and dtc2_status > 0: self.batch_dtcs[dtc2_code] = dtc2_status
             self.dtc_timer.start(80)
+            if hasattr(self, "bzd_tab"):
+                self.bzd_tab.on_dtc_frame(raw_packet)
 
         matched_frame = next((f for f in self.config['frames'] if f["name"] == frame_name), None)
         if not matched_frame: return
