@@ -498,7 +498,7 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
     /* Extract 16-bit DID from request frame (Bytes 1 and 2) */
     requested_did = (uint16_t)(((uint16_t)req_ptr[1] << 8U) | req_ptr[2]);
 
-	if ((EcuM_GetState() == ECUM_STATE_SLEEP) && (requested_did != 0x010AU))
+	if ((EcuM_GetState() == ECUM_STATE_SLEEP) && (requested_did != 0x0127U))
 	{
 		Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_CONDITIONS_NOT_CORRECT);
 		return;
