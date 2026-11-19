@@ -28,6 +28,7 @@ void PduR_ComRxIndication(const uint8_t *pdu_ptr)
         /* Inspect Service Identifier (SID) to route diagnostic frames */
         switch (sid)
         {
+			case 0x10:  /* Diagnostic Session Control */
             case 0x11U: /* ECU Reset */
             case 0x14U: /* Clear Diagnostic Information */
             case 0x19U: /* Read DTC Information */
