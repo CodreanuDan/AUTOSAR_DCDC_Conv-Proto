@@ -311,7 +311,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.combo_dids_read.setFixedWidth(240)
         
         self.did_mapping = {}
-        for did_item in self.config.get('adaptations', []):
+        for did_item in self.config.get('adaptations', []) + self.config.get('read_dids', []):
             display_name = f"{did_item['name']} (0x{did_item['did']})"
             self.did_mapping[display_name] = did_item['did']
             self.combo_dids_read.addItem(display_name)
@@ -324,6 +324,23 @@ class MainWindow(QtWidgets.QMainWindow):
         row_read.addWidget(self.combo_dids_read)
         row_read.addWidget(btn_read)
         gen_layout.addLayout(row_read)
+        
+        # DSC Buttons 
+        row_ses = QtWidgets.QHBoxLayout()
+        lbl_ses = QtWidgets.QLabel("Diagnostic Session Control (0x10)")
+        lbl_ses.setStyleSheet("color: #ffffff; font-weight: bold;")
+        btn_ses_def = QtWidgets.QPushButton("Default 10 01")
+        btn_ses_ext = QtWidgets.QPushButton("Extended 10 03")
+        for b in (btn_ses_def, btn_ses_ext):
+            b.setStyleSheet(btn_silver_style)
+        btn_ses_def.clicked.connect(lambda: self.send_hex_manual("10 01"))
+        btn_ses_ext.clicked.connect(lambda: self.send_hex_manual("10 03"))
+        row_ses.addWidget(lbl_ses)
+        row_ses.addStretch()
+        row_ses.addWidget(btn_ses_def)
+        row_ses.addWidget(btn_ses_ext)
+        gen_layout.addLayout(row_ses)
+        
         left_ctrl_layout.addWidget(general_group)
         
         # Rutine Control (Dropdown + 1 Buton Start + 1 Buton Stop)

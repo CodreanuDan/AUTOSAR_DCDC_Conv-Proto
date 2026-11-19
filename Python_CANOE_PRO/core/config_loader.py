@@ -22,4 +22,5 @@ class ConfigLoader:
             "adaptations": cfg.get("DID_Table", []),
             "dtc_table": cfg.get("DTC_Table", {}),
             "bzd": cfg.get("BZD_Table", []),
+            "read_dids": cfg.get("Read_DID_Table", []),
         }

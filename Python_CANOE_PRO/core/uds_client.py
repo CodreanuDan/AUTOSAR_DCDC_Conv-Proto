@@ -24,6 +24,8 @@ A5_HEADER = 0xA5              # DEM frames (answer of 19 02)
 ALIVE_FRAME = 0xA8            # safety frame, sent every 200 ms while cyclic data is on
 
 DID_KL15_OVERRIDE = 0x0127
+DID_ACTIVE_SESSION = 0xF186
+SESSION_DEFAULT, SESSION_EXTENDED = 0x01, 0x03
 
 
 class UdsError(Exception):
@@ -150,6 +152,21 @@ class UdsClient:
             except UdsTimeout:
                 if attempt == retries:
                     raise
+
+    def session(self, sub):
+        """10 01 (default) or 10 03 (extended). Positive answer: 50 <sub> 00 32 01 F4."""
+        pkt = self.request(bytes([0x10, sub]), match=lambda p: p[1] == sub)
+        return bytes(pkt[1:6])
+
+    def extended_session(self):
+        return self.session(SESSION_EXTENDED)
+
+    def default_session(self):
+        return self.session(SESSION_DEFAULT)
+
+    def read_session(self):
+        """DID 0xF186: 1 = default, 3 = extended."""
+        return self.read_did(DID_ACTIVE_SESSION, 1)[0]
 
     def ecu_reset(self):
         """11 02 (hard reset). Returns when the ECU confirmed with 51 02."""

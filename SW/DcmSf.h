@@ -24,6 +24,7 @@ extern "C" {
  *******************************************************/
 
 /* UDS Service Identifiers (SID) */
+#define UDS_SID_SESSION_CONTROL         0x10U
 #define UDS_SID_ECU_RESET               0x11U
 #define UDS_SID_CLEAR_FAULT_MEM         0x14U
 #define UDS_SID_READ_DTC_INFO           0x19U
@@ -37,6 +38,14 @@ extern "C" {
 #define UDS_NRC_INCORRECT_LENGTH_OR_FORMAT 0x13U
 #define UDS_NRC_CONDITIONS_NOT_CORRECT     0x22U
 #define UDS_NRC_REQUEST_OUT_OF_RANGE       0x31U
+#define UDS_NRC_SERVICE_NOT_SUPP_IN_SES    0x7FU   
+
+/* Standard DID: active diagnostic session (read only, 1 byte: 0x01 default / 0x03 extended) */
+#define DCM_DID_ACTIVE_SESSION             0xF186U
+
+/* Timing parameters reported in the positive response of 0x10 (P2 = 50 ms, P2* = 5000 ms, unit 10 ms for P2*) */
+#define DCM_P2_SERVER_MAX_MS               50U
+#define DCM_P2_STAR_SERVER_MAX_10MS        500U
 
 /* Diagnostic Sessions (DSL - Diagnostic Session Layer) */
 typedef enum

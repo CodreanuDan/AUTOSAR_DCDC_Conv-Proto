@@ -168,6 +168,32 @@ static Dcm_NegativeResponseCodeType Dcm_CondCheck_SafeReset(void)
 }
 /* ---------------------------------------- */
 
+static void Dcm_Cb_Read_ActiveSession(uint8_t *d) { d[0] = (uint8_t)s_current_session; } /* READ Diag Service: RDID 0x22*/
+/* ---------------------------------------- */
+
+/**
+ * @brief Session gate for DIDs. The DIDs that control the converter stay available in the default
+ *        session; every other DID (coding, ident, raw PWM, cyclic configuration ...) needs the extended session.
+ */
+static bool Dcm_DidAllowedInSession(uint16_t did)
+{
+    switch (did)
+    {
+        case 0x0102U:                   /* setpoint        */
+        case 0x0104U:                   /* relay in        */
+        case 0x0105U:                   /* relay out       */
+        case 0x0127U:                   /* KL15 override   */
+        case 0x0128U:                   /* fan mode        */
+        case 0x0129U:                   /* fan duty        */
+        case 0x012AU:                   /* recovery mode   */
+        case 0x012BU:                   /* safety reset    */
+        case DCM_DID_ACTIVE_SESSION:
+            return true;
+        default:
+            return (s_current_session == DCM_EXTENDED_SESSION);
+    }
+}
+
 /* =====================================================================
  * CENTRAL DID CONFIGURATION TABLE 
  * ===================================================================== */
@@ -195,7 +221,10 @@ static const Dcm_DidConfigType s_dcm_did_table[] = {
 	{ 0x0129U, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_FanDuty,         Dcm_Cb_Write_FanDuty,        NULL,               Dcm_CondCheck_FanDuty},
 
 	{ 0x012AU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RecMode, 		  Dcm_Cb_Write_RecMode,        NULL, 			   NULL},
-	{ 0x012BU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                		  Dcm_Cb_Write_SafeReset,      NULL, 			   Dcm_CondCheck_SafeReset}
+	{ 0x012BU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                		  Dcm_Cb_Write_SafeReset,      NULL, 			   Dcm_CondCheck_SafeReset},
+
+	/* Standard DIDs */
+	{ DCM_DID_ACTIVE_SESSION, 1U, DID_DATA_UINT8, DID_READ_ONLY, Dcm_Cb_Read_ActiveSession, NULL,             NULL,               NULL}
 };
 
 #define DCM_TOTAL_DIDS (sizeof(s_dcm_did_table) / sizeof(Dcm_DidConfigType))
@@ -211,6 +240,7 @@ static void Dcm_SendPositiveResponse(uint8_t sid, const uint8_t *data_ptr, uint8
 static void Dcm_SendNegativeResponse(uint8_t sid, uint8_t nrc);
 
 /* DSP Service Processors */
+static void Dcm_Dsp_SessionControl(const uint8_t *req_ptr);
 static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr);
 static void Dcm_Dsp_ClearFaultMem(void);
 static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr);
@@ -250,6 +280,9 @@ void Dcm_ProcessRxPdu(const uint8_t *pdu_ptr)
     /* Route request to specific DSP processor */
     switch (sid)
     {
+        case UDS_SID_SESSION_CONTROL:
+            Dcm_Dsp_SessionControl(pdu_ptr);
+            break;
         case UDS_SID_ECU_RESET:
             Dcm_Dsp_EcuReset(pdu_ptr);
             break;
@@ -279,6 +312,36 @@ void Dcm_ProcessRxPdu(const uint8_t *pdu_ptr)
  * DSP (Diagnostic Service Processing) LAYER
  * ===================================================================== */
 
+/**
+ * Function name: Dcm_Dsp_SessionControl
+ * @brief UDS Service 0x10: switches between default (0x01) and extended (0x03) session.
+ *        Positive response: 50 <session> 00 32 01 F4 (P2 = 50 ms, P2* = 5000 ms). No S3 timer:
+ *        the extended session stays active until 10 01 or an ECU reset.
+ */
+static void Dcm_Dsp_SessionControl(const uint8_t *req_ptr)
+{
+    uint8_t sub = req_ptr[1];
+    uint8_t resp[5];
+
+    if ((sub != (uint8_t)DCM_DEFAULT_SESSION) && (sub != (uint8_t)DCM_EXTENDED_SESSION))
+    {
+        Dcm_SendNegativeResponse(UDS_SID_SESSION_CONTROL, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+        return;
+    }
+
+    s_current_session = (Dcm_SesCtrlType)sub;
+
+    resp[0] = sub;
+    resp[1] = (uint8_t)(DCM_P2_SERVER_MAX_MS >> 8U);
+    resp[2] = (uint8_t)(DCM_P2_SERVER_MAX_MS & 0xFFU);
+    resp[3] = (uint8_t)(DCM_P2_STAR_SERVER_MAX_10MS >> 8U);
+    resp[4] = (uint8_t)(DCM_P2_STAR_SERVER_MAX_10MS & 0xFFU);
+    Dcm_SendPositiveResponse(UDS_SID_SESSION_CONTROL, resp, 5U);
+}
+
+/**
+ * Function name: Dcm_Dsp_EcuReset
+ */
 static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr)
 {
     uint8_t reset_type = req_ptr[1];
@@ -297,6 +360,9 @@ static void Dcm_Dsp_EcuReset(const uint8_t *req_ptr)
     }
 }
 
+/**
+ * Function name: Dcm_Dsp_ClearFaultMem
+ */
 static void Dcm_Dsp_ClearFaultMem(void)
 {
     /* Clear fault memory using DemSf */
@@ -305,6 +371,9 @@ static void Dcm_Dsp_ClearFaultMem(void)
     Dcm_SendPositiveResponse(UDS_SID_CLEAR_FAULT_MEM, NULL, 0U);
 }
 
+/**
+ * Function name: Dcm_Dsp_ReadDtcInfo
+ */
 static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr)
 {
     uint8_t sub_func = req_ptr[1];
@@ -342,6 +411,14 @@ static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr)
 	uint8_t ph_resp[9];
 	if (ParamHdl_IsParamDid(requested_did, &ph_size, &ph_rw))
 	{
+		/* Check active diagnostic session */
+		if (!Dcm_DidAllowedInSession(requested_did))
+		{
+			Dcm_SendNegativeResponse(UDS_SID_READ_DATA_BY_ID, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
+			return;
+		}
+		
+		/* Perform reading of data */
 		ph_resp[0] = req_ptr[1];
 		ph_resp[1] = req_ptr[2];
 		(void)ParamHdl_ReadDid(requested_did, &ph_resp[2]);
@@ -354,6 +431,13 @@ static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr)
         if (s_dcm_did_table[i].did == requested_did)
         {
             uint8_t resp_payload[8];
+
+			/* Check active diagnostic session */
+			if (!Dcm_DidAllowedInSession(requested_did))
+			{
+				Dcm_SendNegativeResponse(UDS_SID_READ_DATA_BY_ID, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
+				return;
+			}
 
             /* Echo back requested DID in response header bytes 0 and 1 */
             resp_payload[0] = req_ptr[1];
@@ -425,6 +509,14 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
 	uint8_t ph_resp[9];
 	if (ParamHdl_IsParamDid(requested_did, &ph_size, &ph_rw))
 	{
+		/* Check active diagnostic session */
+		if (!Dcm_DidAllowedInSession(requested_did))
+		{
+			Dcm_SendNegativeResponse(UDS_SID_READ_DATA_BY_ID, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
+			return;
+		}
+
+		/* Perform writing of data */
 		ph_nrc = ParamHdl_WriteDid(requested_did, &req_ptr[3]);
 		if (ph_nrc != 0U) { Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, ph_nrc); return; }
 		ph_resp[0] = req_ptr[1];
@@ -438,6 +530,14 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
     {
         if (s_dcm_did_table[i].did == requested_did)
         {
+
+            /* Session check: control DIDs are open in the default session, all others need the extended session */
+            if (!Dcm_DidAllowedInSession(requested_did))
+            {
+                Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
+                return;
+            }
+
             /* Verify write permissions for requested DID */
             if (
 				(s_dcm_did_table[i].access_type != DID_READ_WRITE) &&
@@ -515,6 +615,9 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
  * HELPERS: POSITIVE & NEGATIVE RESPONSES
  * ===================================================================== */
 
+/**
+ * Function name: Dcm_SendPositiveResponse
+ */
 static void Dcm_SendPositiveResponse(uint8_t sid, const uint8_t *data_ptr, uint8_t len)
 {
 	uint8_t i;
@@ -543,6 +646,10 @@ static void Dcm_SendPositiveResponse(uint8_t sid, const uint8_t *data_ptr, uint8
     Uart_TxByte(0x0DU);
 }
 
+
+/**
+ * Function name: Dcm_SendNegativeResponse
+ */
 static void Dcm_SendNegativeResponse(uint8_t sid, uint8_t nrc)
 {
 	uint8_t i;

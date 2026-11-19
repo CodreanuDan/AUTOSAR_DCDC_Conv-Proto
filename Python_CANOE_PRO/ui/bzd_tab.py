@@ -179,11 +179,13 @@ class BzdTab(QtWidgets.QWidget):
         self.dtc_read_ok = False
         self._rebuild_table()
         self.read_time = datetime.datetime.now()
-        self.phase = "dids"
+        self.phase = "ses"                 # 10 03 first: only the converter-control DIDs are open in the default session
         self.pos = -1
         self.btn_read.setEnabled(False)
-        self._status("Reading DIDs...", AMBER)
-        self._next_did()
+        self._status("Entering extended session...", AMBER)
+        self.timer.setInterval(800)
+        self.timer.start()
+        self.send_fn(bytes([0x10, 0x03]))
 
     def _abort(self, text):
         self.timer.stop()
@@ -213,7 +215,9 @@ class BzdTab(QtWidgets.QWidget):
         self.timer.start()
 
     def _on_timeout(self):
-        if self.phase == "dids":
+        if self.phase == "ses":
+            self._abort("No response to 10 03 (extended session) - is the ECU connected and KL15 on?")
+        elif self.phase == "dids":
             self.rows[self.pos].update(state="timeout", value="no response")
             self._rebuild_table()
             self._next_did()
@@ -227,6 +231,15 @@ class BzdTab(QtWidgets.QWidget):
 
     def on_response(self, packet):
         """Called by the main window for every UDS response frame (12 bytes)."""
+        if self.phase == "ses":
+            if packet[0] == 0x50 and packet[1] == 0x03:
+                self.timer.stop()
+                self.phase = "dids"
+                self._status("Reading DIDs...", AMBER)
+                self._next_did()
+            elif packet[0] == 0x7F and packet[1] == 0x10:
+                self._abort(f"ECU refused the extended session: NRC 0x{packet[2]:02X}")
+            return
         if self.phase != "dids" or not (0 <= self.pos < len(self.entries)):
             return
         e = self.entries[self.pos]

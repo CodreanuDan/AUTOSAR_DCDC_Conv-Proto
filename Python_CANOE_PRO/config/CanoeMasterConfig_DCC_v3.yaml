@@ -21,11 +21,14 @@ UDS_NRC_dictionary: {
   "0x22": "Conditions Not Correct",
   "0x31": "Request Out Of Range",
   "0x33": "Security Access Denied",
-  "0x78": "Response Pending"
+  "0x78": "Response Pending",
+  "0x7F": "Service Not Supported In Active Session"
 }
 
 # c. Supported UDS Diagnostic Services (SIDs)
 Supported_Diagnostic_Services_Table: {
+  "0x10": "DiagnosticSessionControl",
+  "0x11": "EcuReset",
   "0x14": "ClearDiagnosticInformation",
   "0x19": "ReadDTCInformation",
   "0x22": "ReadDataByIdentifier",
@@ -147,7 +150,7 @@ Routine_Table:
   - { name: "RelayInputTest", rid: "0205", start_cmd: "31 01 02 05", stop_cmd: "31 02 02 05" }
   - { name: "RelayOutputTest", rid: "0206", start_cmd: "31 01 02 06", stop_cmd: "31 02 02 06" }
 
-# 3. Data Identifiers (DID)
+# 3.1 Data Identifiers (DID) - Read Write
 DID_Table:
   - { name: "PWMBrDutyAB", did: "0100", type: "dual_spin", min: 0, max: 98, default_a: 50, default_b: 50 }
   - { name: "PWMFreqSet", did: "0101", type: "single_spin", min: 100, max: 1000, step: 50, default: 100, size: 2 }
@@ -167,6 +170,31 @@ DID_Table:
   - { name: "FanDuty", did: "0129", type: "single_spin", min: 0, max: 100, default: 50, size: 1 }
   - { name: "SafetyRecovery", did: "012A", type: "single_spin", min: 0, max: 1, default: 0, size: 1}
   - { name: "SafetyReset",    did: "012B", type: "single_spin", min: 1, max: 1, default: 1, size: 1}
+
+# 3.2 Read-only DIDs for the Hex Service RDID dropdown (not shown in Anpassung)
+Read_DID_Table:
+  - { name: "ActiveSession",    did: "F186" }
+  - { name: "PartNumber",       did: "F187" }
+  - { name: "SwVersion",        did: "F189" }
+  - { name: "HwNumber",         did: "F191" }
+  - { name: "HwVersion",        did: "F193" }
+  - { name: "SerialNumber",     did: "F18C" }
+  - { name: "PseudoVin1-7",     did: "F190" }
+  - { name: "PseudoVin8-14",    did: "F1A1" }
+  - { name: "PseudoVin15-17",   did: "F1A2" }
+  - { name: "CodingStatus",     did: "F1F0" }
+  - { name: "SetpointMin",      did: "0200" }
+  - { name: "SetpointMax",      did: "0201" }
+  - { name: "IinShutdown",      did: "0202" }
+  - { name: "IoutDtcLimit",     did: "0203" }
+  - { name: "VinOvDtc",         did: "0204" }
+  - { name: "VinShutdown",      did: "0205" }
+  - { name: "VinUvDtc",         did: "0206" }
+  - { name: "OvertempCrit",     did: "0207" }
+  - { name: "RecoveryDefault",  did: "0208" }
+  - { name: "FanModeDefault",   did: "0209" }
+  - { name: "RetryLimit",       did: "020A" }
+  - { name: "PwmFreqCoded",     did: "020B" }
 
 # 4. DTC Table (Diagnostic Trouble Codes) --> Fault Memory (0xA5-Diag Frame / SID 0x19)
 DTC_Table:
