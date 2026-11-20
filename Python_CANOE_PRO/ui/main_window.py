@@ -123,6 +123,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """)
         self.setCentralWidget(self.main_tabs)
         
+        # --- shared UDS client (used by Panel, Coding and later the test runner) ---
+        headers = {int(f["header_hex"], 16) for f in self.config["frames"]}
+        self.uds = UdsClient(self.send_uds_payload_raw, headers, self.config["nrc_dict"])
+        self.uds_tx.connect(self._log_uds_tx)
+        
         # --- TAB 0: MAIN PANEL ---
         self.panel_tab = PanelTab(self.config, self.uds)
         self.main_tabs.addTab(self.panel_tab, "Panel")
@@ -598,9 +603,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_tabs.addTab(self.bzd_tab, "BZD")
         
         # --- TAB G: CPTOOL ---
-        headers = {int(f["header_hex"], 16) for f in self.config["frames"]}
-        headers = {int(f["header_hex"], 16) for f in self.config["frames"]}
-        self.uds = UdsClient(self.send_uds_payload_raw, headers, self.config["nrc_dict"])
         self.coding_tab = CodingTab(self.config, self.uds)
         self.main_tabs.addTab(self.coding_tab, "Coding")
 
