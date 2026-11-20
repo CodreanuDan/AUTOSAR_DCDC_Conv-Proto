@@ -6,8 +6,10 @@ from core.serial_thread import SerialReaderThread
 from ui.bzd_tab import BzdTab
 from core.uds_client import UdsClient
 from ui.coding_tab import CodingTab
+from ui.panel_tab import PanelTab
 
 class MainWindow(QtWidgets.QMainWindow):
+    uds_tx = QtCore.pyqtSignal(bytes)      # TX frames sent by worker threads -> hex console
     def __init__(self, config):
         super().__init__()
         self.config = config
@@ -120,6 +122,11 @@ class MainWindow(QtWidgets.QMainWindow):
             }
         """)
         self.setCentralWidget(self.main_tabs)
+        
+        # --- TAB 0: MAIN PANEL ---
+        self.panel_tab = PanelTab(self.config, self.uds)
+        self.main_tabs.addTab(self.panel_tab, "Panel")
+        self.uds_tx.connect(self._log_uds_tx)
 
         # --- TAB A: DATA ANALYZER ---
         data_analyzer_tab = QtWidgets.QWidget()
@@ -749,6 +756,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 cursor.deleteChar()
 
     def process_incoming_packet(self, frame_name, values, raw_packet):
+        self.panel_tab.on_frame(frame_name, values, raw_packet)
         t = QtCore.QTime.currentTime().toString("hh:mm:ss.zzz")
         
         # Dacă este pachetul DEM (0xA5), extragem erorile pentru tabel, dar lăsăm codul să continue
@@ -876,7 +884,12 @@ class MainWindow(QtWidgets.QMainWindow):
         written = self.reader.ser.write(packet)
         self.reader.ser.flush()
         self.reader.add_traffic(written)
+        self.uds_tx.emit(bytes(payload))
         return True
+    
+    def _log_uds_tx(self, payload):
+        t = QtCore.QTime.currentTime().toString("hh:mm:ss.zzz")
+        self.hex_console.append(f'<span style="color: #888;">[{t}]</span> <span style="color: #007acc;">TX:</span> {" ".join(f"{b:02X}" for b in payload)}')
     
     def send_uds_payload(self, payload):
         """Sends one UDS request frame (used by the BZD tab). Returns False if not connected."""

@@ -71,6 +71,7 @@ class UdsClient:
         self._log = log or (lambda text: None)
         self._resp = queue.Queue()
         self._lock = threading.Lock()
+        self.lock = threading.RLock()     # serialises whole operations (panel action / coding run / test step)
         self._frames = {}                 # header -> (monotonic time, packet)
         self._dem = None                  # list while a 19 02 read is collecting
 
@@ -98,6 +99,10 @@ class UdsClient:
     # ----------------------------------------------------------- requests
     def request(self, payload, timeout=0.8, match=None):
         """Sends a request and returns the positive response packet. Raises UdsNegative / UdsTimeout."""
+        with self.lock:
+            return self._request(payload, timeout, match)
+
+    def _request(self, payload, timeout, match):
         while not self._resp.empty():     # drop stale answers
             try:
                 self._resp.get_nowait()
@@ -136,7 +141,7 @@ class UdsClient:
                 if attempt == retries:
                     raise
 
-    def write_did(self, did, data, retries=1):
+    def write_did(self, did, data, retries=1, check_echo=True):
         """2E <did> <data>. The ECU echoes the stored value, which is checked here."""
         d = _did(did)
         data = bytes(data)
@@ -146,7 +151,7 @@ class UdsClient:
                 pkt = self.request(req, match=lambda p: p[1] == req[1] and p[2] == req[2])
                 echo = bytes(pkt[3:3 + len(data)])
                 # DID 0x0127 (KL15) and a few live DIDs do not echo the value, so only coding/ident DIDs are compared
-                if echo != data and any(echo):
+                if check_echo and echo != data and any(echo):
                     raise UdsError(f"write 0x{d:04X}: ECU stored {echo.hex(' ').upper()} instead of {data.hex(' ').upper()}")
                 return echo
             except UdsTimeout:
@@ -174,6 +179,10 @@ class UdsClient:
 
     def read_dtcs(self, first_frame_timeout=1.0, silence=0.25):
         """19 02 FF. Returns {code_text: status}; code_text like '0x1A0173'. Raises UdsTimeout if the ECU is silent."""
+        with self.lock:
+            return self._read_dtcs(first_frame_timeout, silence)
+
+    def _read_dtcs(self, first_frame_timeout, silence):
         with self._lock:
             self._dem = []
         try:

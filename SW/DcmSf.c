@@ -411,13 +411,6 @@ static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr)
 	uint8_t ph_resp[9];
 	if (ParamHdl_IsParamDid(requested_did, &ph_size, &ph_rw))
 	{
-		/* Check active diagnostic session */
-		if (!Dcm_DidAllowedInSession(requested_did))
-		{
-			Dcm_SendNegativeResponse(UDS_SID_READ_DATA_BY_ID, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
-			return;
-		}
-		
 		/* Perform reading of data */
 		ph_resp[0] = req_ptr[1];
 		ph_resp[1] = req_ptr[2];

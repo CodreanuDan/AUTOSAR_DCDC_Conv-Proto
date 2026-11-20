@@ -199,7 +199,7 @@ void EcuM_MainFunction(void)
 			s_ecum_state = ECUM_STATE_RUN;
 		#else
 			/* Mock sleep: stay here, fully responsive, until EcuM_RequestWake()
-			 * clears the pending-sleep flag - via the real KL15 pin or the 0x010A
+			 * clears the pending-sleep flag - via the real KL15 pin or the 0x0127
 			 * diagnostic override, both already call it. */
 			wdt_disable();   /* don't let the watchdog fire while we're asleep */
 			if (s_ecum_sleep_req == false)

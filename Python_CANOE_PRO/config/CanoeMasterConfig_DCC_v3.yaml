@@ -140,6 +140,7 @@ Frame_Table:
       - {name: "SG_safetyInfo_1_Restarts_", unit: "Ct", color: "#76FF03", byte_offset: 5, size: 1, scaling: "direct"}
       - {name: "SG_safetyInfo_1_ConvEn_", unit: "Flags", color: "#7c4dff", byte_offset: 6, size: 1, value_table: {0: "STOPPED", 1: "ENABLED"}, scaling: "direct"}
       - {name: "SG_safetyInfo_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct"}
+      - {name: "SG_safetyInfo_1_Session_", unit: "Flags", color: "#c586c0", byte_offset: 7, size: 1, value_table: {1: "DEFAULT", 3: "EXTENDED"}, scaling: "direct"}
       
 # 2. UDS Available Routines
 Routine_Table:

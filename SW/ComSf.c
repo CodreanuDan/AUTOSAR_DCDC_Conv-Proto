@@ -18,6 +18,7 @@
 #include "Rte.h"
 #include "DioSf.h"
 #include "EcuM.h"
+#include "DcmSf.h"
 
 /*******************************************************
  *            START OF VARIABLE DEFINITIONS
@@ -661,6 +662,7 @@ void Com_Send_DiagFrame_SafetyData(void)
     payload[3] = Rte_Read_SafetyLatched();
     payload[4] = Rte_Read_SafetyRestarts();
     payload[5] = Rte_Read_ConverterEnable();
+	payload[6] = (uint8_t)Dcm_GetSesCtrlType();
 
     Uart_TxByte(0xA8U); checksum += 0xA8U;
     for (i = 0U; i < 8U; i++) { Uart_TxByte(payload[i]); checksum += payload[i]; }

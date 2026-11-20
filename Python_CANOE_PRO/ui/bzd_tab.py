@@ -179,13 +179,18 @@ class BzdTab(QtWidgets.QWidget):
         self.dtc_read_ok = False
         self._rebuild_table()
         self.read_time = datetime.datetime.now()
-        self.phase = "ses"                 # 10 03 first: only the converter-control DIDs are open in the default session
+        # self.phase = "ses"                 # 10 03 first: only the converter-control DIDs are open in the default session
+        # self.pos = -1
+        # self.btn_read.setEnabled(False)
+        # self._status("Entering extended session...", AMBER)
+        # self.timer.setInterval(800)
+        # self.timer.start()
+        # self.send_fn(bytes([0x10, 0x03]))
+        self.phase = "dids"
         self.pos = -1
         self.btn_read.setEnabled(False)
-        self._status("Entering extended session...", AMBER)
-        self.timer.setInterval(800)
-        self.timer.start()
-        self.send_fn(bytes([0x10, 0x03]))
+        self._status("Reading DIDs...", AMBER)
+        self._next_did()
 
     def _abort(self, text):
         self.timer.stop()

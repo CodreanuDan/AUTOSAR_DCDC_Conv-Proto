@@ -6,12 +6,12 @@ Used by the Coding tab (in a worker thread) and by headless test scripts:
     print(result.status)            # "SUCCESS" | "FAILURE" | "ABORTED"
 
 Steps:
-  1 KL15 on         2E 01 27 01, checked on frame A4 (KL15 ON, EcuM RUN), then 10 03 (extended session)
+  1 KL15 on         2E 01 27 01, checked on frame A4 (KL15 ON, EcuM RUN), then 10 03 (extended session: needed for the writes)
   2 Read ECU        every DID of the table
   3 Write           only DIDs that differ from the dataset (2E, echo checked)
   4 Reset           11 02 after confirmation (new values become active only after a reset)
   5 Wait for ECU    cyclic frames back, then settle time
-  6 KL15 on         KL15 override and the session are lost with the reset: both again
+  6 KL15 on         KL15 override is lost with the reset (the session too, but the read-out needs none)
   7 Read-out        compare again -> SUCCESS or FAILURE with the mismatch list
 """
 import datetime
@@ -20,7 +20,7 @@ import time
 from core.uds_client import UdsError, UdsNegative, UdsTimeout
 from core.coding_model import OK, DIFF, BLOCKED, PENDING
 
-STEPS = ["KL15 on + extended session", "Read ECU", "Write coding", "ECU reset", "Wait for ECU", "KL15 on + extended session", "Read-out and verify"]
+STEPS = ["KL15 on + extended session", "Read ECU", "Write coding", "ECU reset", "Wait for ECU", "KL15 on", "Read-out and verify"]
 N_STEPS = len(STEPS)
 
 SUCCESS, FAILURE, ABORTED = "SUCCESS", "FAILURE", "ABORTED"
@@ -48,7 +48,13 @@ def _txt(row, raw):
     return "-" if raw is None else decode_value(row.entry, raw)
 
 
-def run_coding(uds, model, log=None, confirm_reset=lambda: True, should_stop=lambda: False,
+def run_coding(uds, model, *args, **kwargs):
+    """Runs the sequence while holding the UDS lock, so the panel / other tools cannot interleave requests."""
+    with uds.lock:
+        return _run_coding(uds, model, *args, **kwargs)
+
+
+def _run_coding(uds, model, log=None, confirm_reset=lambda: True, should_stop=lambda: False,
                step=lambda n, total, text: None, min_wait=1.5, timeout=10.0, settle=1.0):
     """Runs the sequence. Never raises for ECU problems: the outcome is in the returned CodingResult."""
     res = CodingResult()
@@ -123,8 +129,6 @@ def run_coding(uds, model, log=None, confirm_reset=lambda: True, should_stop=lam
         begin(6)
         uds.ensure_kl15()
         emit("ok", "KL15 on, ECU in RUN")
-        uds.extended_session()
-        emit("ok", "Extended session active (50 03)")
 
         # 7 ------------------------------------------------------------
         begin(7)
