@@ -172,6 +172,10 @@ static Dcm_NegativeResponseCodeType Dcm_CondCheck_SafeReset(void)
 static void Dcm_Cb_Read_ActiveSession(uint8_t *d) { d[0] = (uint8_t)s_current_session; } /* READ Diag Service: RDID 0x22*/
 /* ---------------------------------------- */
 
+static void Dcm_Cb_Read_SensorOvr(uint8_t *data_out) { data_out[0] = Rte_Read_SensorOverrideMask(); } /* READ Diag Service: RDID 0x22*/
+static void Dcm_Cb_Write_SensorOvr(const uint8_t *d)  { Rte_Call_SensorOverride_Set Mask(d[0]); } /* WRITE Diag Service: WDID 0x2E */
+/* ---------------------------------------- */
+
 /**
  * @brief Session gate for DIDs. The DIDs that control the converter stay available in the default
  *        session; every other DID (coding, ident, raw PWM, cyclic configuration ...) needs the extended session.
@@ -223,6 +227,8 @@ static const Dcm_DidConfigType s_dcm_did_table[] = {
 
 	{ 0x012AU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_RecMode, 		  Dcm_Cb_Write_RecMode,        NULL, 			   NULL},
 	{ 0x012BU, 1U,  DID_DATA_UINT8,  DID_WRITE_ONLY, NULL,                		  Dcm_Cb_Write_SafeReset,      NULL, 			   Dcm_CondCheck_SafeReset},
+
+	{ 0x012CU, 1U,  DID_DATA_UINT8,  DID_READ_WRITE, Dcm_Cb_Read_SensorOvr,       Dcm_Cb_Write_SensorOvr,      NULL,               NULL},
 
 	/* Standard DIDs */
 	{ DCM_DID_ACTIVE_SESSION, 1U, DID_DATA_UINT8, DID_READ_ONLY, Dcm_Cb_Read_ActiveSession, NULL,             NULL,               NULL}
@@ -332,6 +338,7 @@ static void Dcm_Dsp_SessionControl(const uint8_t *req_ptr)
 	if (sub == (uint8_t)DCM_DEFAULT_SESSION)
 	{
 		Rte_Call_Routine_Abort();   /* leaving the extended session ends a running test routine */
+		Rte_Call_SensorOverride_Clear();   /* releases every sensor override */
 	}
 
     s_current_session = (Dcm_SesCtrlType)sub;

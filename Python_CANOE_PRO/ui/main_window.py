@@ -131,7 +131,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # --- TAB 0: MAIN PANEL ---
         self.panel_tab = PanelTab(self.config, self.uds)
         self.main_tabs.addTab(self.panel_tab, "Panel")
-        self.uds_tx.connect(self._log_uds_tx)
 
         # --- TAB A: DATA ANALYZER ---
         data_analyzer_tab = QtWidgets.QWidget()
@@ -886,7 +885,8 @@ class MainWindow(QtWidgets.QMainWindow):
         written = self.reader.ser.write(packet)
         self.reader.ser.flush()
         self.reader.add_traffic(written)
-        self.uds_tx.emit(bytes(payload))
+        if payload[0] not in (0xB0, 0xB1):
+            self.uds_tx.emit(bytes(payload))
         return True
     
     def _log_uds_tx(self, payload):

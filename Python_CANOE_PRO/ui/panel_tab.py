@@ -10,6 +10,7 @@ import time
 from PyQt5 import QtWidgets, QtCore
 
 from core.uds_client import UdsError, UdsNegative, UdsClient
+from core.stimulus import SensorOverride, BIT as OVR_BIT, mask_text
 from ui.bzd_tab import BTN_STYLE, GREEN, RED, GREY, AMBER
 
 # DIDs
@@ -63,6 +64,7 @@ class PanelTab(QtWidgets.QWidget):
         self._vt = {s["name"]: s.get("value_table", {}) for f in config.get("frames", []) for s in f["signals"]}
         self.values = {}            # signal name -> last decoded value
         self.raw = {}               # header hex -> last packet
+        self.stim = SensorOverride(uds)
         self.seen = {}              # header hex -> monotonic time of the last frame
         self._busy = False
         self._buttons = []
@@ -241,6 +243,33 @@ class PanelTab(QtWidgets.QWidget):
         grid.addWidget(self._btn("STOP routine", self._routine_stop_all, "31 02 for the running routine"), 5, 0, 1, 4)
         right.addWidget(g)
 
+        # ---- sensor override (stimulus): the ECU uses these values instead of the real sensors
+        g, grid = self._group("Sensor override")
+        self.chip_ovr = chip("none", GREY)
+        grid.addWidget(self._label("Active"), 0, 0)
+        grid.addWidget(self.chip_ovr, 0, 1, 1, 3)
+        self.ovr_chk, self.ovr_spin = {}, {}
+        for r, (key, text, unit, lo, hi, dec, val) in enumerate([
+                ("vin", "Vin", "V", 0, 60, 2, 12.0), ("vout", "Vout", "V", 0, 60, 2, 12.0),
+                ("iin", "Iin", "A", -30, 30, 2, 0.0), ("iout", "Iout", "A", -30, 30, 2, 0.0),
+                ("temp", "Temperature", "degC", -40, 125, 1, 25.0), ("hum", "Humidity", "%", 0, 100, 1, 40.0)]):
+            chk = QtWidgets.QCheckBox(text)
+            chk.setStyleSheet("color: #cccccc;")
+            sp = QtWidgets.QDoubleSpinBox()
+            sp.setRange(lo, hi); sp.setDecimals(dec); sp.setValue(val); sp.setSuffix(" " + unit)
+            sp.setStyleSheet("background: #2d2d2d; color: white; padding: 3px; font-weight: bold;")
+            sp.valueChanged.connect(lambda v, k=key: self.stim.set_values(**{k: v}))
+            self.ovr_chk[key], self.ovr_spin[key] = chk, sp
+            grid.addWidget(chk, 1 + r, 0, 1, 2)
+            grid.addWidget(sp, 1 + r, 2, 1, 2)
+        chk = QtWidgets.QCheckBox("Fuse blown")
+        chk.setStyleSheet("color: #cccccc;")
+        self.ovr_chk["fuse"] = chk
+        grid.addWidget(chk, 7, 0, 1, 4)
+        grid.addWidget(self._btn("Apply override", self._ovr_apply, "10 03, 2E 01 2C <mask>, then stimulus frames B0/B1 every 100 ms"), 8, 0, 1, 2)
+        grid.addWidget(self._btn("Release all", self._ovr_release, "2E 01 2C 00 - the real sensors are used again"), 8, 2, 1, 2)
+        right.addWidget(g)
+
         # ---- faults
         g, grid = self._group("Fault memory")
         grid.addWidget(self._btn("Read faults  19 02", self._read_faults), 0, 0)
@@ -294,6 +323,14 @@ class PanelTab(QtWidgets.QWidget):
             for c, t in ((self.chip_rel_in, "-"), (self.chip_rel_out, "-"), (self.lbl_kl15, "KL15 ?"), (self.lbl_ecum, "ECU ?"), (self.chip_fuse, "-")):
                 set_chip(c, t, GREY)
 
+        if self._fresh("A4") and len(a4) > 8:
+            if a4[8]:
+                set_chip(self.chip_ovr, "OVERRIDE: " + mask_text(a4[8]), RED)
+            else:
+                set_chip(self.chip_ovr, "none", GREY)
+        else:
+            set_chip(self.chip_ovr, "-", GREY)
+
         if self._fresh("A8"):
             txt, col = SAFETY.get(a8[1], ("?", GREY))
             set_chip(self.chip_safety, txt, col)
@@ -346,6 +383,28 @@ class PanelTab(QtWidgets.QWidget):
     def _write(self, label, did, value):
         # control DIDs: the ECU may answer with a normalised value, so the echo is shown, not enforced
         self._do(label, lambda: self.uds.write_did(did, [value], check_echo=False).hex(" ").upper() or None)
+
+    def _ovr_apply(self):
+        mask = 0
+        values = {k: s.value() for k, s in self.ovr_spin.items()}
+        for k, c in self.ovr_chk.items():
+            if c.isChecked():
+                mask |= OVR_BIT[k]
+        values["fuse"] = 0 if self.ovr_chk["fuse"].isChecked() else 1      # "Fuse blown" -> sense level 0
+        if mask == 0:
+            self._ovr_release()
+            return
+
+        def go():
+            self.stim.start(mask, **values)
+            return "override: " + mask_text(mask)
+        self._do("Sensor override", go)
+
+    def _ovr_release(self):
+        def go():
+            self.stim.stop(release=True)
+            return "sensors released"
+        self._do("Release override", go)
 
     def _ext(self):
         if self.uds.read_session() != 0x03:

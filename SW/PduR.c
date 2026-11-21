@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include "PduR.h"
 #include "DcmSf.h"
+#include "StimSf.h"
 
 /********************************************************
  *             START OF FUNCTION DEFINITIONS
@@ -39,7 +40,10 @@ void PduR_ComRxIndication(const uint8_t *pdu_ptr)
                 /* Route payload to Diagnostic Communication Manager */
                 Dcm_ProcessRxPdu(pdu_ptr);
                 break;
-
+		    case STIM_FRAME_ADC:    /* 0xB0 sensor override values (no response) */
+            case STIM_FRAME_MISC:   /* 0xB1 sensor override values (no response) */
+                Stim_RxIndication(pdu_ptr);
+                break;
             default:
                 /* Unknown/Unsupported PDU SID - Ignore frame */
                 break;

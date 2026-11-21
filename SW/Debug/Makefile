@@ -73,6 +73,8 @@ LD=avr-gcc
 #        C:/Users/dan/AppData/Local/Temp/VSM Studio/3f70a4a090904c61bd981bbfdaa1ac2b/Arduino Uno/ParamHdl.c
 #     C:/Users/dan/AppData/Local/Temp/VSM Studio/3f70a4a090904c61bd981bbfdaa1ac2b/ARDUINO UNO/Debug/SWC_RoutineCtrl.o: TOOL=CC
 #        C:/Users/dan/AppData/Local/Temp/VSM Studio/3f70a4a090904c61bd981bbfdaa1ac2b/Arduino Uno/SWC_RoutineCtrl.c
+#     C:/Users/dan/AppData/Local/Temp/VSM Studio/3f70a4a090904c61bd981bbfdaa1ac2b/ARDUINO UNO/Debug/StimSf.o: TOOL=CC
+#        C:/Users/dan/AppData/Local/Temp/VSM Studio/3f70a4a090904c61bd981bbfdaa1ac2b/Arduino Uno/StimSf.c
 
 # Build tree:
 all:	Debug
@@ -80,8 +82,8 @@ all:	Debug
 Debug:	Debug.elf
 	avr-size "Debug.ELF"
 
-Debug.elf:	main.o AdcSf.o ComSf.o DcmSf.o DemSf.o DioSf.o EcuM.o GptSf.o IoHwAb.o NvM.o PduR.o PortSf.o PwmSf.o Rte.o SWC_PidController.o SWC_SensorMeasurement.o UartSf.o WdgSf.o I2cSf.o Sht21Sf.o SWC_CoolingCtrl.o SWC_SafetyMonitor.o ParamHdl.o SWC_RoutineCtrl.o 
-	$(LD) $(LDFLAGS)  -o "./Debug.elf" "main.o" "AdcSf.o" "ComSf.o" "DcmSf.o" "DemSf.o" "DioSf.o" "EcuM.o" "GptSf.o" "IoHwAb.o" "NvM.o" "PduR.o" "PortSf.o" "PwmSf.o" "Rte.o" "SWC_PidController.o" "SWC_SensorMeasurement.o" "UartSf.o" "WdgSf.o" "I2cSf.o" "Sht21Sf.o" "SWC_CoolingCtrl.o" "SWC_SafetyMonitor.o" "ParamHdl.o" "SWC_RoutineCtrl.o" arduino/arduino.a -lm
+Debug.elf:	main.o AdcSf.o ComSf.o DcmSf.o DemSf.o DioSf.o EcuM.o GptSf.o IoHwAb.o NvM.o PduR.o PortSf.o PwmSf.o Rte.o SWC_PidController.o SWC_SensorMeasurement.o UartSf.o WdgSf.o I2cSf.o Sht21Sf.o SWC_CoolingCtrl.o SWC_SafetyMonitor.o ParamHdl.o SWC_RoutineCtrl.o StimSf.o 
+	$(LD) $(LDFLAGS)  -o "./Debug.elf" "main.o" "AdcSf.o" "ComSf.o" "DcmSf.o" "DemSf.o" "DioSf.o" "EcuM.o" "GptSf.o" "IoHwAb.o" "NvM.o" "PduR.o" "PortSf.o" "PwmSf.o" "Rte.o" "SWC_PidController.o" "SWC_SensorMeasurement.o" "UartSf.o" "WdgSf.o" "I2cSf.o" "Sht21Sf.o" "SWC_CoolingCtrl.o" "SWC_SafetyMonitor.o" "ParamHdl.o" "SWC_RoutineCtrl.o" "StimSf.o" arduino/arduino.a -lm
 	avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
 	avr-objcopy -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ihex "./Debug.elf" "./Debug.eep" || exit 0 
 
@@ -161,6 +163,9 @@ ParamHdl.o:	../ParamHdl.c
 SWC_RoutineCtrl.o:	../SWC_RoutineCtrl.c 
 	$(CC) $(CCFLAGS)  -o "SWC_RoutineCtrl.o" -c "../SWC_RoutineCtrl.c"
 
+StimSf.o:	../StimSf.c 
+	$(CC) $(CCFLAGS)  -o "StimSf.o" -c "../StimSf.c"
+
 # bootloader - attach bootloader to the firmware
 bootloader:
 	avr-objcopy -O ihex -R .eeprom "./Debug.elf" "./Debug.hex"
@@ -192,6 +197,7 @@ tidy:
 	rm -rf ./SWC_SafetyMonitor.d
 	rm -rf ./ParamHdl.d
 	rm -rf ./SWC_RoutineCtrl.d
+	rm -rf ./StimSf.d
 	-make -f arduino/Makefile tidy
 
 # cleanup - delete all generated files
@@ -222,4 +228,5 @@ clean:	tidy
 	rm -rf SWC_SafetyMonitor.o
 	rm -rf ParamHdl.o
 	rm -rf SWC_RoutineCtrl.o
+	rm -rf StimSf.o
 	-make -f arduino/Makefile clean

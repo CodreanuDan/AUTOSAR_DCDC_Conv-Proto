@@ -12,6 +12,7 @@
 #include "AdcSf.h"
 #include "DcmSf.h"
 #include "EcuM.h"   /* for EcuM_RequestSleep/EcuM_RequestWake */
+#include "StimSf.h"
 
 #include <stdbool.h>
 
@@ -154,30 +155,41 @@ float IoHwAb_Analog_ReadVoltage(uint16_t raw)
 void IoHwAb_Sensor_MainFunction(void)
 {
     uint16_t raw_adc_buffer[ADC_NUM_CHANNELS];
+	uint8_t ch;
 
     if (Adc_IsScanDone() == TRUE) 
     {
         /* Read ADC raw buffer data and populate local buffer */
         Adc_ReadGroup(raw_adc_buffer);
 
+		/* ErrInj */
+		for (ch = 0U; ch < ADC_NUM_CHANNELS; ch++)
+		{
+			raw_adc_buffer[ch] = Stim_ApplyAdc(ch, raw_adc_buffer[ch]);
+		}
+
         /* 1. Process Input Current (Iin): Convert to physical units and filter transient noise */
         float physical_iin = IoHwAb_Analog_ConvertToAmps(raw_adc_buffer[ADC_CH_IIN]);
         float filtered_iin = MovAvg_Update(&s_filt_iin, physical_iin);
+		if (Stim_IsAdcOverridden(ADC_CH_IIN)) { filtered_iin = physical_iin; } /* ErrInj */
         Rte_Write_Physical_Iin(filtered_iin);
 
         /* 2. Process Input Voltage (Vin): Convert via resistor divider rules and filter ripples */
         float physical_vin = IoHwAb_Analog_ReadVoltage(raw_adc_buffer[ADC_CH_VIN]);
         float filtered_vin = MovAvg_Update(&s_filt_vin, physical_vin);
+		if (Stim_IsAdcOverridden(ADC_CH_IIN)) { filtered_iin = physical_vin; } /* ErrInj */
         Rte_Write_Physical_Vin(filtered_vin);
 
         /* 3. Process Output Current (Iout): Convert to physical units and filter transient noise */
         float physical_iout = IoHwAb_Analog_ConvertToAmps(raw_adc_buffer[ADC_CH_IOUT]);
         float filtered_iout = MovAvg_Update(&s_filt_iout, physical_iout);
+		if (Stim_IsAdcOverridden(ADC_CH_IIN)) { filtered_iin = physical_iout; } /* ErrInj */
         Rte_Write_Physical_Iout(filtered_iout);
 
         /* 4. Process Output Voltage (Vout): Convert via resistor divider rules and filter ripples */
         float physical_vout = IoHwAb_Analog_ReadVoltage(raw_adc_buffer[ADC_CH_VOUT]);
         float filtered_vout = MovAvg_Update(&s_filt_vout, physical_vout);
+		if (Stim_IsAdcOverridden(ADC_CH_IIN)) { filtered_iin = physical_vout; } /* ErrInj */
         Rte_Write_Physical_Vout(filtered_vout);
     }
 }
@@ -406,15 +418,20 @@ uint8_t IoHwAb_Fan_GetDuty(void)
 
 void IoHwAb_Sht21_MainFunction(void)
 {
-   int16_t t; uint16_t rh;
-   Sht21_MainFunction();
-   Sht21_GetData(&t, &rh);
-   Rte_Write_AmbTemp(t); Rte_Write_AmbHumidity(rh); Rte_Write_Sht21Valid(Sht21_IsValid());
+	int16_t t; uint16_t rh; uint8_t valid;
+	Sht21_MainFunction();
+	Sht21_GetData(&t, &rh);
+	t  = Stim_ApplyTemp(t);
+	rh = Stim_ApplyHum(rh);
+	valid = Sht21_IsValid();
+	if ((Stim_GetMask() & (STIM_BIT_TEMP | STIM_BIT_HUM)) != 0U) { valid = 1U; }
+	Rte_Write_AmbTemp(t); Rte_Write_AmbHumidity(rh); Rte_Write_Sht21Valid(valid);
 }
 
 void IoHwAb_Fuse_MainFunction(void)
 {
 	uint8_t raw = (Dio_ReadChannel(DIO_CHANNEL_FUSE_SENSE) == STD_HIGH) ? 1U : 0U;
+	raw = Stim_ApplyFuse(raw);
 
 	if (raw == s_fuse_level)
     {

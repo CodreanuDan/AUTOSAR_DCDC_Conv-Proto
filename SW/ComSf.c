@@ -459,11 +459,16 @@ void Com_Send_DiagFrame_ActuatorInfo(void)
 	Uart_TxByte(fuse_sense);
 	checksum += fuse_sense;
 
-	/* 7. Padding (1 byte) */
+	/* 7. Active sensor override mask (offset 8, 0 = all sensors real) */
+	uint8_t ovr_mask = Rte_Read_SensorOverrideMask();
+	Uart_TxByte(ovr_mask);
+	checksum += ovr_mask;
+
+	/* 8. Padding (1 byte) */
 	Uart_TxByte(0x00U);
 	checksum += 0x00U;
     
-    /* 8. Alive Counter, Checksum, and Terminator */
+    /* 9. Alive Counter, Checksum, and Terminator */
     Uart_TxByte(s_alive_counter_DiagFrame_Act); 
     checksum += s_alive_counter_DiagFrame_Act;
     

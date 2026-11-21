@@ -8,6 +8,7 @@
 #include "Rte.h"
 #include "IoHwAb.h"
 #include "SWC_RoutineCtrl.h"
+#include "StimSf.h"
 
 /* =====================================================================
  * RTE INTERNAL STORAGE (Encapsulated Global Variables)
@@ -572,4 +573,19 @@ void Rte_Write_CodingParam(uint8_t id, uint16_t val)
 uint16_t Rte_Read_CodingParam(uint8_t id)            
 { 
 	return (id < RTE_CODING_COUNT) ? RTE_VAR_CodingParam[id] : 0U; 
+}
+
+void    Rte_Call_SensorOverride_SetMask(uint8_t mask) 
+{ 
+	Stim_SetMask(mask); 
+}
+
+void    Rte_Call_SensorOverride_Clear(void)           
+{ 
+	Stim_Clear(); 
+}
+
+uint8_t Rte_Read_SensorOverrideMask(void)             
+{ 
+	return Stim_GetMask(); 
 }

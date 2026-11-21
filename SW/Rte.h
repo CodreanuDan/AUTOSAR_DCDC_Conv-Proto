@@ -131,5 +131,8 @@ uint8_t Rte_Read_RelayInputRequest(void);
 uint8_t Rte_Read_RelayOutputRequest(void);
 void     Rte_Write_CodingParam(uint8_t id, uint16_t val);
 uint16_t Rte_Read_CodingParam(uint8_t id);
+void    Rte_Call_SensorOverride_SetMask(uint8_t mask);
+void    Rte_Call_SensorOverride_Clear(void);
+uint8_t Rte_Read_SensorOverrideMask(void);
 
 #endif /* RTE_H */

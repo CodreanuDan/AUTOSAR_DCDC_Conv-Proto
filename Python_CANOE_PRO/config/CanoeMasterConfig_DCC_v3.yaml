@@ -88,7 +88,8 @@ Frame_Table:
       - { name: "SG_actInfo_1_FuseState_", unit: "St", color: "#ff5252", byte_offset: 6, size: 1, value_table: { 0: "OK", 1: "BLOWN", 2: "UNKNOWN" }, scaling: "direct" }
       - { name: "SG_actInfo_1_FuseSense_", unit: "0/1", color: "#ffab40", byte_offset: 7, size: 1, value_table: { 0: "LOW", 1: "HIGH" }, scaling: "direct" }
       - { name: "SG_actInfo_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct" }
-
+      - { name: "SG_actInfo_1_OverrideMask_", unit: "Mask", color: "#ff1744", byte_offset: 8, size: 1, scaling: "direct" }
+      
   - header_hex: "A5"
     name: "BO_demInfo__1_"
     color: "#E040FB"

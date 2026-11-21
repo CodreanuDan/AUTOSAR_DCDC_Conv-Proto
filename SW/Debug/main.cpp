@@ -40,6 +40,7 @@ void peripheral_loop() {}
 #include "AdcSf.h"
 #include "GptSf.h"
 #include "Sht21Sf.h"
+#include "StimSf.h"
 
 /* ASW Runnable APIs */
 #include "SWC_SensorMeasurement.h"
@@ -54,7 +55,7 @@ void App_Task_50ms (void );
 void App_Task_100ms (void );
 void App_Task_500ms (void );
 int main (void );
-#line 47
+#line 48
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -122,6 +123,8 @@ void App_Task_100ms(void)
 	EcuM_StateType st = EcuM_GetState();
 	/* ASW: UDS 0x31 test routines (500 ms steps). Outside the RUN-only block so a routine is aborted when the ECU leaves RUN. */
 	SWC_RoutineCtrl_Runnable(st == ECUM_STATE_RUN);
+	Stim_MainFunction();   /* override timeout supervision, any ECU state */
+
 	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* TRIGGER: Trigger next ADC scan cycle*/
