@@ -3,6 +3,7 @@
  * @brief: Contains routing logic definitions for PDU Router module
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include <stddef.h>
 #include "PduR.h"

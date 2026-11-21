@@ -20,6 +20,8 @@
  *  failures the data is declared INVALID (the cooling logic will then use
  *  the fail-safe fan speed). The first fully good cycle makes it valid again.
  ******************************************************************************/
+#pragma GCC optimize ("Os")
+
 #include <avr/io.h>            /* SREG */
 #include <avr/interrupt.h>     /* cli() */
 #include "StdTypes.h"

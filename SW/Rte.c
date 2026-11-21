@@ -3,6 +3,7 @@
  * @brief Auto-generated RTE Source Implementation for DC_DC_Analyzer_Pro
  * @date Generated automatically by Mini-Tresos RTE Generator Tool
  */
+#pragma GCC optimize ("Os")
 
 #include "Rte.h"
 #include "IoHwAb.h"

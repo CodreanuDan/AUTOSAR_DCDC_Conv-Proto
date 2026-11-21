@@ -3,7 +3,7 @@
  * @brief: Contains function definitions for RX Parsing in Communication Stack (ComSf)
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
-
+#pragma GCC optimize ("Os")
 
 /* Core libs */
 #include <avr/io.h>

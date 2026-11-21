@@ -5,6 +5,7 @@
  *         a shutdown aborts the routine and the original state is restored.
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "SWC_RoutineCtrl.h"
 #include "Rte.h"

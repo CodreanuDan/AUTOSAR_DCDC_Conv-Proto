@@ -3,6 +3,7 @@
  * @brief: Contains DSL, DSD, and DSP implementation for Diagnostic Manager (DcmSf)
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "DcmSf.h"
 #include "UartSf.h"

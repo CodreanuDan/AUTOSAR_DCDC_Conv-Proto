@@ -1,3 +1,5 @@
+#pragma GCC optimize ("Os")
+
 #include "SWC_SafetyMonitor.h"
 #include "SafetyEvents.h"
 #include "Rte.h"

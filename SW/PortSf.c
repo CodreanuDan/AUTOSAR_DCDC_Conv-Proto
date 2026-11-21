@@ -3,6 +3,7 @@
  * @brief: Contains the function definitions for PORT Drivers
  * @author: Codreanu Dan ( Senior Project Arhitect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "PortSf.h"
 

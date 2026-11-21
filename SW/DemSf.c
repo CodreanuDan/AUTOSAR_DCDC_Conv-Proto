@@ -3,6 +3,7 @@
  * @brief: Contains function definitions and DTC fault table for Diagnostic Event Manager (DemSf)
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "DemSf.h"
 #include "AdcSf.h"

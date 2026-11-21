@@ -3,6 +3,7 @@
  * @brief: Contains the function definitions Timer 1 PWM Driver
  * @author: Codreanu Dan ( Senior Project Arhitect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "PwmSf.h"
 

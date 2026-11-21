@@ -3,6 +3,7 @@
  * @brief: Contains the function definitions for ADC Driver
  * @author: Codreanu Dan ( Senior Project Arhitect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "AdcSf.h"
 #include <avr/io.h>

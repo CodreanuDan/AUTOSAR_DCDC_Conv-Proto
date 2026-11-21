@@ -3,6 +3,7 @@
  * @brief: Implements calibrated physical conversions, multi-channel moving average filtering, and RTE routing
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "IoHwAb.h"
 #include "Rte.h"

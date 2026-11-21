@@ -3,6 +3,7 @@
  * @brief: Contains PID Controller implementation, converter state logic, and RTE communication ports
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "SWC_PidController.h"
 #include "Rte.h"

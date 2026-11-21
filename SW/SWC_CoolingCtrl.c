@@ -1,4 +1,6 @@
 /* SWC_CoolingCtrl.c */
+#pragma GCC optimize ("Os")
+
 #include "SWC_CoolingCtrl.h"
 #include "Rte.h"
 #include "CoolingEvents.h"

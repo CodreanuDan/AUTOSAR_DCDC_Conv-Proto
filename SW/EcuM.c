@@ -3,6 +3,7 @@
  * @brief: Contains state machine definitions and initialization flow for EcuM
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 /* Core libs */
 #include <avr/interrupt.h>

@@ -3,6 +3,7 @@
  * @brief: Contains sensor reading, digital moving average filtering, and physical conversion algorithms for ASW
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "SWC_SensorMeasurement.h"
 #include "Rte.h"

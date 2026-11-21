@@ -3,6 +3,7 @@
  * @brief: Contains function definitions for Watchdog Driver
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 #include "WdgSf.h"
 

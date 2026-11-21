@@ -3,6 +3,7 @@
  * @brief: Contains function definitions for DIO Driver
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 /* Project specific libs */
 #include "DioSf.h"

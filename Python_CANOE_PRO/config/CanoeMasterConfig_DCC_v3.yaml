@@ -141,7 +141,8 @@ Frame_Table:
       - {name: "SG_safetyInfo_1_ConvEn_", unit: "Flags", color: "#7c4dff", byte_offset: 6, size: 1, value_table: {0: "STOPPED", 1: "ENABLED"}, scaling: "direct"}
       - {name: "SG_safetyInfo_1_AliveCt__", unit: "Ct", color: "#ff9800", byte_offset: 9, size: 1, scaling: "direct"}
       - {name: "SG_safetyInfo_1_Session_", unit: "Flags", color: "#c586c0", byte_offset: 7, size: 1, value_table: {1: "DEFAULT", 3: "EXTENDED"}, scaling: "direct"}
-      
+      - {name: "SG_safetyInfo_1_Routine_", unit: "Flags", color: "#f48fb1", byte_offset: 8, size: 1, value_table: {0: "NONE", 1: "PWM_BOOST_0201", 2: "PWM_BUCK_0202", 3: "PID_BOOST_0203", 4: "PID_BUCK_0204", 5: "RELAY_IN_0205", 6: "RELAY_OUT_0206"}, scaling: "direct"}    
+
 # 2. UDS Available Routines
 Routine_Table:
   - { name: "BoostPWMTest", rid: "0201", start_cmd: "31 01 02 01", stop_cmd: "31 02 02 01" }

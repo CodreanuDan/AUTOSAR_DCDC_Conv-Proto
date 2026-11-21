@@ -3,6 +3,7 @@
  * @brief: Contains EEPROM storage mapping and function definitions for NvM
  * @author: Codreanu Dan ( Senior Project Architect: ComplicatedAsFuckEngineeringSolutions SRL (CAFES SRL))
  */
+#pragma GCC optimize ("Os")
 
 /* Core libs */
 #include <avr/eeprom.h>
