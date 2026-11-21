@@ -23,6 +23,7 @@ ECUM_RUN = 1
 A5_HEADER = 0xA5              # DEM frames (answer of 19 02)
 ALIVE_FRAME = 0xA8            # safety frame, sent every 200 ms while cyclic data is on
 
+DID_PID_DISABLE = 0x0103
 DID_KL15_OVERRIDE = 0x0127
 DID_ACTIVE_SESSION = 0xF186
 SESSION_DEFAULT, SESSION_EXTENDED = 0x01, 0x03
@@ -172,6 +173,40 @@ class UdsClient:
     def read_session(self):
         """DID 0xF186: 1 = default, 3 = extended."""
         return self.read_did(DID_ACTIVE_SESSION, 1)[0]
+
+    # ---- 0x31 routines
+    ROUTINES = {0x0201: "Boost PWM sweep", 0x0202: "Buck PWM sweep", 0x0203: "Boost PID setpoint steps",
+                0x0204: "Buck PID setpoint steps", 0x0205: "Input relay toggle", 0x0206: "Output relay toggle"}
+    ROUTINE_STATUS = {0: "not run", 1: "running", 2: "completed", 3: "stopped", 4: "aborted"}
+
+    def _routine(self, sub, rid):
+        pkt = self.request(bytes([0x31, sub, rid >> 8, rid & 0xFF]),
+                           match=lambda p: p[1] == sub and p[2] == rid >> 8 and p[3] == rid & 0xFF)
+        return pkt[4], pkt[5]          # (status, step)
+
+    def routine_start(self, rid):
+        """31 01 <rid>. Needs the extended session and the right PID mode. Returns (status, step)."""
+        return self._routine(0x01, rid)
+
+    def routine_stop(self, rid):
+        """31 02 <rid>. Returns (status, step)."""
+        return self._routine(0x02, rid)
+
+    def routine_result(self, rid):
+        """31 03 <rid>. Returns (status, step); status: 0 never run, 1 running, 2 completed, 3 stopped, 4 aborted."""
+        return self._routine(0x03, rid)
+
+    def routine_run(self, rid, timeout=15.0, poll=0.5):
+        """Starts a routine and waits until it is no longer running. Returns (status, step)."""
+        self.routine_start(rid)
+        end = time.monotonic() + timeout
+        while time.monotonic() < end:
+            time.sleep(poll)
+            st, step = self.routine_result(rid)
+            if st != 1:
+                return st, step
+        self.routine_stop(rid)
+        raise UdsTimeout(f"routine 0x{rid:04X} did not finish in {timeout:.0f} s")
 
     def ecu_reset(self):
         """11 02 (hard reset). Returns when the ECU confirmed with 51 02."""

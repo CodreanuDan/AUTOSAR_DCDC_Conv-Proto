@@ -9,10 +9,11 @@ import time
 
 from PyQt5 import QtWidgets, QtCore
 
-from core.uds_client import UdsError, UdsNegative
+from core.uds_client import UdsError, UdsNegative, UdsClient
 from ui.bzd_tab import BTN_STYLE, GREEN, RED, GREY, AMBER
 
 # DIDs
+DID_PID_DISABLE = 0x0103
 DID_SETPOINT, DID_RELAY_IN, DID_RELAY_OUT = 0x0102, 0x0104, 0x0105
 DID_KL15, DID_FAN_MODE, DID_FAN_DUTY, DID_RECOVERY, DID_SAFETY_RESET = 0x0127, 0x0128, 0x0129, 0x012A, 0x012B
 
@@ -225,6 +226,21 @@ class PanelTab(QtWidgets.QWidget):
         grid.addWidget(self.chip_cool, 3, 1)
         right.addWidget(g)
 
+        # ---- test routines (31 01 / 31 02) - start needs the extended session, the panel switches to it
+        g, grid = self._group("Test routines (0x31)")
+        self.chip_routine = chip("none", GREY)
+        grid.addWidget(self._label("PID controller"), 0, 0, 1, 2)
+        grid.addWidget(self._btn("PID ON", lambda: self._set_pid(True), "2E 01 03 00 (extended session) - PID routines need it"), 0, 2)
+        grid.addWidget(self._btn("PID OFF", lambda: self._set_pid(False), "2E 01 03 01 (extended session) - PWM and relay routines need it"), 0, 3)
+        grid.addWidget(self._label("Running"), 1, 0)
+        grid.addWidget(self.chip_routine, 1, 1, 1, 3)
+        for i, (rid, name) in enumerate(UdsClient.ROUTINES.items()):
+            need = "PID enabled" if rid in (0x0203, 0x0204) else "PID disabled"
+            grid.addWidget(self._btn(f"{name}  {rid:04X}", lambda _=None, r=rid: self._routine_start(r), f"31 01 {rid >> 8:02X} {rid & 0xFF:02X} - needs {need}"),
+                           2 + i // 2, (i % 2) * 2, 1, 2)
+        grid.addWidget(self._btn("STOP routine", self._routine_stop_all, "31 02 for the running routine"), 5, 0, 1, 4)
+        right.addWidget(g)
+
         # ---- faults
         g, grid = self._group("Fault memory")
         grid.addWidget(self._btn("Read faults  19 02", self._read_faults), 0, 0)
@@ -292,6 +308,12 @@ class PanelTab(QtWidgets.QWidget):
                     set_chip(c, text + " (latched)", AMBER)
                 else:
                     set_chip(c, text, GREY)
+            rid_idx = a8[8]
+            if rid_idx:
+                name = list(UdsClient.ROUTINES.values())[rid_idx - 1] if rid_idx <= len(UdsClient.ROUTINES) else f"#{rid_idx}"
+                set_chip(self.chip_routine, f"RUNNING: {name}", AMBER)
+            else:
+                set_chip(self.chip_routine, "none", GREY)
             sess = a8[7]
             if sess in SESSION:
                 set_chip(self.lbl_session, SESSION[sess], AMBER if sess == 3 else GREEN)
@@ -301,6 +323,7 @@ class PanelTab(QtWidgets.QWidget):
             for c in (self.chip_safety, self.chip_rec, self.chip_enable):
                 set_chip(c, "-", GREY)
             set_chip(self.lbl_session, "SESSION ?", GREY)
+            set_chip(self.chip_routine, "-", GREY)
 
         for key, (lbl, unit) in self.m.items():
             v = self.values.get(key)
@@ -323,6 +346,35 @@ class PanelTab(QtWidgets.QWidget):
     def _write(self, label, did, value):
         # control DIDs: the ECU may answer with a normalised value, so the echo is shown, not enforced
         self._do(label, lambda: self.uds.write_did(did, [value], check_echo=False).hex(" ").upper() or None)
+
+    def _ext(self):
+        if self.uds.read_session() != 0x03:
+            self.uds.extended_session()
+
+    def _set_pid(self, enabled):
+        def go():
+            self._ext()
+            self.uds.write_did(DID_PID_DISABLE, [0 if enabled else 1], check_echo=False)
+            return "PID enabled" if enabled else "PID disabled"
+        self._do("PID on" if enabled else "PID off", go)
+
+    def _routine_start(self, rid):
+        def go():
+            self._ext()
+            st, step = self.uds.routine_start(rid)
+            return f"{UdsClient.ROUTINES[rid]}: {UdsClient.ROUTINE_STATUS.get(st, st)}"
+        self._do(f"Routine {rid:04X}", go)
+
+    def _routine_stop_all(self):
+        def go():
+            res = []
+            for rid in UdsClient.ROUTINES:
+                st, step = self.uds.routine_result(rid)
+                if st == 1:
+                    self.uds.routine_stop(rid)
+                    res.append(f"{rid:04X} stopped after {step} step(s)")
+            return ", ".join(res) or "nothing was running"
+        self._do("Stop routine", go)
 
     def _reset(self):
         a = QtWidgets.QMessageBox.question(self, "ECU reset", "Reset the ECU now (11 02)?")
