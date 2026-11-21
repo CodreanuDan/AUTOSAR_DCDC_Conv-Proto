@@ -173,7 +173,7 @@ static void Dcm_Cb_Read_ActiveSession(uint8_t *d) { d[0] = (uint8_t)s_current_se
 /* ---------------------------------------- */
 
 static void Dcm_Cb_Read_SensorOvr(uint8_t *data_out) { data_out[0] = Rte_Read_SensorOverrideMask(); } /* READ Diag Service: RDID 0x22*/
-static void Dcm_Cb_Write_SensorOvr(const uint8_t *d)  { Rte_Call_SensorOverride_Set Mask(d[0]); } /* WRITE Diag Service: WDID 0x2E */
+static void Dcm_Cb_Write_SensorOvr(const uint8_t *d)  { Rte_Call_SensorOverride_SetMask(d[0]); } /* WRITE Diag Service: WDID 0x2E */
 /* ---------------------------------------- */
 
 /**

@@ -34,6 +34,8 @@ CAUSES = [  # (bit mask, text, stops the converter)
 ECUM = {0: "STARTUP", 1: "RUN", 2: "SHUTDOWN", 3: "PRESLEEP", 4: "SLEEP"}
 SAFETY = {0: ("OK", GREEN), 1: ("DEGRADED", AMBER), 2: ("SHUTDOWN", RED)}
 SESSION = {1: "DEFAULT", 3: "EXTENDED"}
+CHK_STYLE = ("QCheckBox { color: #cccccc; spacing: 8px; } QCheckBox::indicator { width: 16px; height: 16px; border: 1px solid #888; background: #2d2d2d; }"
+             " QCheckBox::indicator:checked { background: #4EC9B0; border: 1px solid #4EC9B0; }")
 STALE_S = 1.5          # a frame older than this counts as "no data"
 
 
@@ -241,7 +243,7 @@ class PanelTab(QtWidgets.QWidget):
             grid.addWidget(self._btn(f"{name}  {rid:04X}", lambda _=None, r=rid: self._routine_start(r), f"31 01 {rid >> 8:02X} {rid & 0xFF:02X} - needs {need}"),
                            2 + i // 2, (i % 2) * 2, 1, 2)
         grid.addWidget(self._btn("STOP routine", self._routine_stop_all, "31 02 for the running routine"), 5, 0, 1, 4)
-        right.addWidget(g)
+        mid.addWidget(g)
 
         # ---- sensor override (stimulus): the ECU uses these values instead of the real sensors
         g, grid = self._group("Sensor override")
@@ -254,7 +256,7 @@ class PanelTab(QtWidgets.QWidget):
                 ("iin", "Iin", "A", -30, 30, 2, 0.0), ("iout", "Iout", "A", -30, 30, 2, 0.0),
                 ("temp", "Temperature", "degC", -40, 125, 1, 25.0), ("hum", "Humidity", "%", 0, 100, 1, 40.0)]):
             chk = QtWidgets.QCheckBox(text)
-            chk.setStyleSheet("color: #cccccc;")
+            chk.setStyleSheet(CHK_STYLE)
             sp = QtWidgets.QDoubleSpinBox()
             sp.setRange(lo, hi); sp.setDecimals(dec); sp.setValue(val); sp.setSuffix(" " + unit)
             sp.setStyleSheet("background: #2d2d2d; color: white; padding: 3px; font-weight: bold;")
@@ -263,12 +265,12 @@ class PanelTab(QtWidgets.QWidget):
             grid.addWidget(chk, 1 + r, 0, 1, 2)
             grid.addWidget(sp, 1 + r, 2, 1, 2)
         chk = QtWidgets.QCheckBox("Fuse blown")
-        chk.setStyleSheet("color: #cccccc;")
+        chk.setStyleSheet(CHK_STYLE)
         self.ovr_chk["fuse"] = chk
         grid.addWidget(chk, 7, 0, 1, 4)
         grid.addWidget(self._btn("Apply override", self._ovr_apply, "10 03, 2E 01 2C <mask>, then stimulus frames B0/B1 every 100 ms"), 8, 0, 1, 2)
         grid.addWidget(self._btn("Release all", self._ovr_release, "2E 01 2C 00 - the real sensors are used again"), 8, 2, 1, 2)
-        right.addWidget(g)
+        left.addWidget(g)
 
         # ---- faults
         g, grid = self._group("Fault memory")
