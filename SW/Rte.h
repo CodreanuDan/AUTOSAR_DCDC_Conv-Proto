@@ -115,6 +115,20 @@ void Rte_Write_SafetyResetReq(uint8_t val);
 uint8_t Rte_Read_SafetyResetReq(void);
 void Rte_Write_SafetyRestarts(uint8_t val);
 uint8_t Rte_Read_SafetyRestarts(void);
+/* Active UDS routine (0 = none, 1..6 = routine index + 1), shown in frame A8 */
+void Rte_Write_RoutineActive(uint8_t val);
+uint8_t Rte_Read_RoutineActive(void);
+/* UDS routine control (client/server: DCM -> RTE -> SWC_RoutineCtrl) */
+bool    Rte_Call_Routine_IsKnown(uint16_t rid);
+uint8_t Rte_Call_Routine_Start(uint16_t rid);                                   /* 0 or NRC */
+uint8_t Rte_Call_Routine_Stop(uint16_t rid);                                    /* 0 or NRC */
+uint8_t Rte_Call_Routine_GetResult(uint16_t rid, uint8_t *status, uint8_t *step);
+void    Rte_Call_Routine_Abort(void);
+/* Relay requests (client/server glue to IoHwAb) */
+void Rte_Call_RelayInput_Set(uint8_t state);
+void Rte_Call_RelayOutput_Set(uint8_t state);
+uint8_t Rte_Read_RelayInputRequest(void);
+uint8_t Rte_Read_RelayOutputRequest(void);
 void     Rte_Write_CodingParam(uint8_t id, uint16_t val);
 uint16_t Rte_Read_CodingParam(uint8_t id);
 

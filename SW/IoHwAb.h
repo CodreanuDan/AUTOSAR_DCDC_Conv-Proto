@@ -122,6 +122,10 @@ void IoHwAb_SetRelayInput(uint8_t state);
  */
 void IoHwAb_SetRelayOutput(uint8_t state);
 
+/** Last requested logical relay state (what the tester / a routine asked for, independent of a safety shutdown). */
+uint8_t IoHwAb_GetRelayInputRequest(void);
+uint8_t IoHwAb_GetRelayOutputRequest(void);
+
 /**
  * Function name: IoHwAb_Kl15_ForceState
  * @brief Diagnostic override: forces a confirmed KL15 transition exactly as
@@ -183,6 +187,7 @@ void IoHwAb_Sht21_MainFunction(void);
  * @return: void
  */
 void IoHwAb_Fuse_MainFunction(void);
+
 
 /************* END OF FUNCTION PROTOTYPES ************/
 

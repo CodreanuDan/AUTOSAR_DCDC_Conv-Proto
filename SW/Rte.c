@@ -5,6 +5,8 @@
  */
 
 #include "Rte.h"
+#include "IoHwAb.h"
+#include "SWC_RoutineCtrl.h"
 
 /* =====================================================================
  * RTE INTERNAL STORAGE (Encapsulated Global Variables)
@@ -23,6 +25,7 @@ static uint8_t RTE_VAR_ConverterState = 0U;
 static uint8_t RTE_VAR_LastPidOutput = 0U;
 static uint8_t RTE_VAR_RelayInputState = 0U;
 static uint8_t RTE_VAR_RelayOutputState = 0U;
+static uint8_t RTE_VAR_RoutineActive = 0U;
 static uint8_t RTE_VAR_RoutinePwmBoost = 0U;
 static uint8_t RTE_VAR_RoutinePwmBuck = 0U;
 static uint8_t RTE_VAR_RoutinePidBoost = 0U;
@@ -204,6 +207,27 @@ uint8_t Rte_Read_RelayOutputState(void)
 {
     return RTE_VAR_RelayOutputState;
 }
+
+void Rte_Write_RoutineActive(uint8_t val)
+{
+    RTE_VAR_RoutineActive = val;
+}
+
+uint8_t Rte_Read_RoutineActive(void)
+{
+    return RTE_VAR_RoutineActive;
+}
+
+bool    Rte_Call_Routine_IsKnown(uint16_t rid)  { return SWC_RoutineCtrl_IsKnown(rid); }
+uint8_t Rte_Call_Routine_Start(uint16_t rid)    { return SWC_RoutineCtrl_Start(rid); }
+uint8_t Rte_Call_Routine_Stop(uint16_t rid)     { return SWC_RoutineCtrl_Stop(rid); }
+uint8_t Rte_Call_Routine_GetResult(uint16_t rid, uint8_t *status, uint8_t *step) { return SWC_RoutineCtrl_GetResult(rid, status, step); }
+void    Rte_Call_Routine_Abort(void)            { SWC_RoutineCtrl_Abort(); }
+
+void Rte_Call_RelayInput_Set(uint8_t state)  { IoHwAb_SetRelayInput(state); }
+void Rte_Call_RelayOutput_Set(uint8_t state) { IoHwAb_SetRelayOutput(state); }
+uint8_t Rte_Read_RelayInputRequest(void)     { return IoHwAb_GetRelayInputRequest(); }
+uint8_t Rte_Read_RelayOutputRequest(void)    { return IoHwAb_GetRelayOutputRequest(); }
 
 void Rte_Write_RoutinePwmBoost(uint8_t val) 
 {

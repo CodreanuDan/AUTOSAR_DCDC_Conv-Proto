@@ -246,7 +246,7 @@ static void Dcm_Dsp_ClearFaultMem(void);
 static void Dcm_Dsp_ReadDtcInfo(const uint8_t *req_ptr);
 static void Dcm_Dsp_ReadDataByIdentifier(const uint8_t *req_ptr);
 static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr);
-//static void Dcm_Dsp_RoutineControl(const uint8_t *req_ptr);
+static void Dcm_Dsp_RoutineControl(const uint8_t *req_ptr);
 
 /************* End of Local Function Prototypes *********/
 
@@ -299,8 +299,7 @@ void Dcm_ProcessRxPdu(const uint8_t *pdu_ptr)
             Dcm_Dsp_WriteDataByIdentifier(pdu_ptr);
             break;
         case UDS_SID_ROUTINE_CONTROL:
-            //Dcm_Dsp_RoutineControl(pdu_ptr);
-			Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+			Dcm_Dsp_RoutineControl(pdu_ptr);
             break;
         default:
             Dcm_SendNegativeResponse(sid, UDS_NRC_SERVICE_NOT_SUPPORTED);
@@ -328,6 +327,11 @@ static void Dcm_Dsp_SessionControl(const uint8_t *req_ptr)
         Dcm_SendNegativeResponse(UDS_SID_SESSION_CONTROL, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
         return;
     }
+
+	if (sub == (uint8_t)DCM_DEFAULT_SESSION)
+	{
+		Rte_Call_Routine_Abort();   /* leaving the extended session ends a running test routine */
+	}
 
     s_current_session = (Dcm_SesCtrlType)sub;
 
@@ -601,6 +605,50 @@ static void Dcm_Dsp_WriteDataByIdentifier(const uint8_t *req_ptr)
         /* DID not configured in table: Return NRC 0x31 (Request Out Of Range) */
         Dcm_SendNegativeResponse(UDS_SID_WRITE_DATA_BY_ID, UDS_NRC_REQUEST_OUT_OF_RANGE);
     }
+}
+
+static void Dcm_Dsp_RoutineControl(const uint8_t *req_ptr)
+{
+    uint8_t  sub = req_ptr[1];
+    uint16_t rid = (uint16_t)(((uint16_t)req_ptr[2] << 8U) | req_ptr[3]);
+    uint8_t  nrc = 0U, status = 0U, step = 0U;
+    uint8_t  resp[5];
+
+    if ((sub < 0x01U) || (sub > 0x03U))
+    {
+        Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, UDS_NRC_SUB_FUNCTION_NOT_SUPP);
+        return;
+    }
+    if (Rte_Call_Routine_IsKnown(rid) == false)
+    {
+        Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, UDS_NRC_REQUEST_OUT_OF_RANGE);
+        return;
+    }
+
+    if (sub == 0x01U)                                   /* start: extended session only */
+    {
+        if (s_current_session != DCM_EXTENDED_SESSION)
+        {
+            Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, UDS_NRC_SERVICE_NOT_SUPP_IN_SES);
+            return;
+        }
+        nrc = Rte_Call_Routine_Start(rid);
+    }
+    else if (sub == 0x02U)
+    {
+        nrc = Rte_Call_Routine_Stop(rid);
+    }
+
+    if (nrc != 0U)
+    {
+        Dcm_SendNegativeResponse(UDS_SID_ROUTINE_CONTROL, nrc);
+        return;
+    }
+
+    (void)Rte_Call_Routine_GetResult(rid, &status, &step);
+    resp[0] = sub;  resp[1] = req_ptr[2];  resp[2] = req_ptr[3];
+    resp[3] = status;  resp[4] = step;
+    Dcm_SendPositiveResponse(UDS_SID_ROUTINE_CONTROL, resp, 5U);
 }
 
 

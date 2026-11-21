@@ -663,6 +663,7 @@ void Com_Send_DiagFrame_SafetyData(void)
     payload[4] = Rte_Read_SafetyRestarts();
     payload[5] = Rte_Read_ConverterEnable();
 	payload[6] = (uint8_t)Dcm_GetSesCtrlType();
+	payload[7] = Rte_Read_RoutineActive();   /* 0 = none, 1..6 = running routine 0x0201..0x0206 */
 
     Uart_TxByte(0xA8U); checksum += 0xA8U;
     for (i = 0U; i < 8U; i++) { Uart_TxByte(payload[i]); checksum += payload[i]; }

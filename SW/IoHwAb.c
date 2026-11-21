@@ -244,6 +244,9 @@ void IoHwAb_SetRelayOutput(uint8_t state)
 	}
 }
 
+uint8_t IoHwAb_GetRelayInputRequest(void)  { return s_rly_in_req; }
+uint8_t IoHwAb_GetRelayOutputRequest(void) { return s_rly_out_req; }
+
 /**
  * Function name: IoHwAb_Kl15_ForceState
  * @brief Diagnostic override: forces a confirmed KL15 transition exactly as

@@ -43,6 +43,7 @@ void peripheral_loop() {}
 #include "SWC_PidController.h"
 #include "SWC_CoolingCtrl.h"
 #include "SWC_SafetyMonitor.h"
+#include "SWC_RoutineCtrl.h"
 
 /* =====================================================================
  * AUTOSAR TASK DEFINITIONS
@@ -108,6 +109,8 @@ void App_Task_50ms(void)
 void App_Task_100ms(void)
 {
 	EcuM_StateType st = EcuM_GetState();
+	/* ASW: UDS 0x31 test routines (500 ms steps). Outside the RUN-only block so a routine is aborted when the ECU leaves RUN. */
+	SWC_RoutineCtrl_Runnable(st == ECUM_STATE_RUN);
 	if ((st == ECUM_STATE_RUN) || (st == ECUM_STATE_PRE_SLEEP))
 	{
 		/* TRIGGER: Trigger next ADC scan cycle*/
@@ -123,12 +126,9 @@ void App_Task_100ms(void)
 	}
 }
 
-/* Task 500ms: Diagnostic Test Routines */
+/* Task 500ms:  */
 void App_Task_500ms(void)
 {
-    /* 1. ASW: Execute active UDS 0x31 diagnostic test routines */
-    //SWC_RoutineCtrl_Runnable_500ms();
-
 }
 
 /* =====================================================================
